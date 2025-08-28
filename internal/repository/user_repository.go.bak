@@ -1,0 +1,53 @@
+package repository
+
+import (
+
+    "backend-task/internal/models"
+    "gorm.io/gorm"
+    "github.com/google/uuid"
+	
+	"fmt"
+)
+
+type UserRepository struct {
+
+    DB *gorm.DB
+}
+
+func NewUserRepository(db *gorm.DB) *UserRepository {
+
+    return &UserRepository{DB: db}
+}
+
+func (r *UserRepository) Create(user *models.User) error {
+
+    return r.DB.Create(user).Error
+}
+
+func (r *UserRepository) GetByID(id uuid.UUID) (*models.User, error) {
+
+    var user models.User
+    result := r.DB.First(&user, "id = ?", id)
+    return &user, result.Error
+}
+
+func (r *UserRepository) Update(user *models.User) error {
+
+    return r.DB.Save(user).Error
+}
+
+func (r *UserRepository) GetByGroup(candidate string) ([]models.User, error) {
+
+	fmt.Println(candidate)
+
+    var users []models.User
+    err := r.DB.Where(" \"group\" = '?'", candidate).Find(&users).Error
+    return users, err
+}
+
+func (r *UserRepository) GetAll() ([]models.User, error) {
+
+    var users []models.User
+    err := r.DB.Find(&users).Error
+    return users, err
+}
