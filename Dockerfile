@@ -12,5 +12,6 @@ COPY . .
 # Build the Go binary
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false -o server ./cmd
 
+EXPOSE 8080
 
 # --- Runtime stage ---

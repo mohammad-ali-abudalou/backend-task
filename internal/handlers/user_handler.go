@@ -31,7 +31,7 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 	var bodies []createUserReq
 	if err := c.ShouldBindJSON(&bodies); err != nil {
 
-		c.JSON(http.StatusBadRequest, gin.H{"code": http.StatusBadRequest, "error": "invalid request body"})
+		c.JSON(http.StatusBadRequest, gin.H{"code": http.StatusBadRequest, "error": "Invalid Request Body"})
 		return
 	}
 
@@ -134,10 +134,10 @@ func respondErr(c *gin.Context, err error) {
 
 	// Handle GORM Not Found Explicitly.
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		c.JSON(http.StatusNotFound, gin.H{"code": http.StatusNotFound, "error": "record not found"})
+		c.JSON(http.StatusNotFound, gin.H{"code": http.StatusNotFound, "error": "Record Not Found !"})
 		return
 	}
 
 	// Default: 500 Internal Server Error.
-	c.JSON(http.StatusInternalServerError, gin.H{"code": http.StatusInternalServerError, "error": "internal server error"})
+	c.JSON(http.StatusInternalServerError, gin.H{"code": http.StatusInternalServerError, "error": "Internal Server Error !"})
 }

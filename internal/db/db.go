@@ -28,7 +28,7 @@ func Open(dsn string, driver string) (*gorm.DB, error) {
 		db, err = gorm.Open(sqlite.Open(dsn), gcfg)
 
 	default:
-		return nil, fmt.Errorf("unsupported DB driver: %s", driver)
+		return nil, fmt.Errorf("Unsupported DB Driver: %s", driver)
 	}
 
 	return db, err
