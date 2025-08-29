@@ -1,33 +1,41 @@
 package router
 
 import (
+	handlers "backend-task/internal/handlers"
+	services "backend-task/internal/services"
 
-    "backend-task/internal/handlers"
-    "backend-task/internal/repository"
-    "backend-task/internal/services"
-    "github.com/gin-gonic/gin"
-    "gorm.io/gorm"
+	"backend-task/internal/repository"
+	"log"
+	"os"
+
+	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 )
 
 func SetupRouter(db *gorm.DB) *gin.Engine {
 
-    repo := repository.NewUserRepository(db)
-    service := services.NewUserService(repo, db)
-    handler := handlers.NewUserHandler(service)
+	// Wire Layers :
+	repository.NewUserRepository(db)
+	service := services.NewUserService(db, repository.NewUserRepository(db), repository.NewGroupRepository(db))
+	handler := handlers.NewUserHandler(service)
 
-    r := gin.Default()
+	r := gin.Default()
 
-    r.POST("/users", handler.CreateUser)
-    r.GET("/users/:id", handler.GetUser)
-    r.PATCH("/users/:id", handler.UpdateUser)
-    r.GET("/users", func(c *gin.Context) {
-        group := c.Query("group")
-        if group != "" {
-            handler.GetUsersByGroup(c)
-        } else {
-            handler.GetAllUsers(c)
-        }
-    })
+	// Routes :
+	r.POST("/users", handler.CreateUser)
+	r.GET("/users/:id", handler.GetUserByID)
+	r.PATCH("/users/:id", handler.UpdateUser)
+	r.GET("/users", handler.QueryUsers) // Supports Optional Group Filter.
 
-    return r
+	addr := ":8080"
+	if v := os.Getenv("HTTP_ADDR"); v != "" {
+		addr = v
+	}
+
+	log.Printf("Listening On %s", addr)
+	if err := r.Run(addr); err != nil {
+		log.Fatal(err)
+	}
+
+	return r
 }

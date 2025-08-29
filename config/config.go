@@ -5,68 +5,45 @@ import (
 	"log"
 	"os"
 
-	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	
-    "backend-task/internal/models"
+
+	"backend-task/internal/db"
 )
+
+type Config struct {
+	DB_DSN    string
+	DB_Driver string // "postgres" or "sqlite".
+}
 
 var DB *gorm.DB
 
 func ConnectDatabase() {
-	
+
+	var driver = "postgres" // "postgres" or "sqlite".
+
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=disable TimeZone=UTC",
-		getEnv("DB_HOST", "localhost"),
-		getEnv("DB_USER", "postgres"),
-		getEnv("DB_PASSWORD", "root"),
-		getEnv("DB_NAME", "backend_task"),
-		getEnv("DB_PORT", "5432"),
+		getEnv("DB_HOST", os.Getenv("DB_HOST")),
+		getEnv("DB_USER", os.Getenv("DB_USER")),
+		getEnv("DB_PASSWORD", os.Getenv("DB_PASSWORD")),
+		getEnv("DB_NAME", os.Getenv("DB_NAME")),
+		getEnv("DB_PORT", os.Getenv("DB_PORT")),
 	)
 
-	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	db, err := db.Open(dsn, driver)
 	if err != nil {
-		log.Fatal("❌ Failed to connect to database:", err)
+		log.Fatal("Failed To Connect To Database : ", err)
 	}
 
 	DB = db
-	fmt.Println("✅ Database connected successfully!")
+	fmt.Println("Database Connected Successfully ^_^ .. ")
 }
 
 func getEnv(key, fallback string) string {
-	
+
 	if value, exists := os.LookupEnv(key); exists {
 		return value
 	}
-	
+
 	return fallback
-}
-
-
-
-func ConnectDB() (*gorm.DB, error) {
-	
-    //dsn := fmt.Sprintf(
-	
-    //    "host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-    //    os.Getenv("DB_HOST"), os.Getenv("DB_USER"),
-    //    os.Getenv("DB_PASSWORD"), os.Getenv("DB_NAME"), os.Getenv("DB_PORT"),
-    //)
-	
-	dsn := fmt.Sprintf(
-	
-        "host=%s user=%s password=%s dbname=%s port=%s sslmode=disable",
-        "localhost", "postgres",
-        "root", "backend_task", "5432",
-    )
-
-    db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
-	
-    if err != nil {
-        return nil, err
-    }
-
-    // Auto migrate
-    db.AutoMigrate(&models.User{})
-    return db, nil
 }

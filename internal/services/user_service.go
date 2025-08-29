@@ -1,129 +1,234 @@
-package services
+package service
 
 import (
-
-    "backend-task/internal/models"
-    "backend-task/internal/repository"
-    "backend-task/pkg/utils"
-    "github.com/google/uuid"
-    "gorm.io/gorm"
-    "fmt"
+	"context"
+	"errors"
+	"regexp"
+	"strings"
 	"time"
+
+	"backend-task/internal/models"
+	"backend-task/internal/repository"
+	"backend-task/pkg/utils"
+
+	"github.com/google/uuid"
+	"gorm.io/gorm"
 )
 
-type UserService struct {
-
-    Repo *repository.UserRepository
-    DB   *gorm.DB
+type UserService interface {
+	CreateUser(name, email, dob string) (*models.User, error)
+	GetUser(id string) (*models.User, error)
+	UpdateUser(id string, name, email *string) (*models.User, error)
+	ListUsers(group string) ([]models.User, error)
 }
 
-func NewUserService(repo *repository.UserRepository, db *gorm.DB) *UserService {
-
-    return &UserService{Repo: repo, DB: db}
+type userService struct {
+	db     *gorm.DB
+	users  repository.UserRepository
+	groups repository.GroupRepository
 }
 
-// Assign group based on age and capacity
-func (s *UserService) AssignGroup(age int) (string, error) {
+func NewUserService(db *gorm.DB, users repository.UserRepository, groups repository.GroupRepository) UserService {
 
-    var base string
-    switch {
-    case age <= 12:
-        base = "child"
-    case age <= 17:
-        base = "teen"
-    case age <= 64:
-        base = "adult"
-    default:
-        base = "senior"
-    }
-
-    // Concurrency-safe group assignment
-    var groupName string
-    err := s.DB.Transaction(func(tx *gorm.DB) error {
-	
-        var count int64
-        for i := 1; ; i++ {
-		
-            candidate := base
-            if i > 1 {
-			
-                candidate = fmt.Sprintf("%s-%d", base, i)
-            }
-			
-            tx.Model(&models.User{}).Where("'group' = ?", candidate).Count(&count)
-            if count < 3 {
-			
-                groupName = candidate
-                break
-            }
-        }
-		
-        return nil
-    })
-	
-    return groupName, err
+	return &userService{db: db, users: users, groups: groups}
 }
 
-func (s *UserService) CreateUser(name, email string, dob string) (*models.User, error) {
+var emailRx = regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
 
-	fmt.Println(name)
-	fmt.Println(email)
-	fmt.Println(dob)
+func (s *userService) CreateUser(name, email, dob string) (*models.User, error) {
 
-    if !utils.ValidateEmail(email) {
-	
-        return nil, fmt.Errorf("invalid email")
-    }
+	name = strings.TrimSpace(name)
+	email = strings.ToLower(strings.TrimSpace(email))
 
-    dateOfBirth, err := time.Parse("2006-01-02", dob)
-    if err != nil {
-	
-        return nil, fmt.Errorf("invalid date_of_birth format")
-    }
+	if name == "" {
+		return nil, newBadRequest("Name Is Required !")
+	}
 
-    if err := utils.ValidateDOB(dateOfBirth); err != nil {
-	
-        return nil, err
-    }
+	if !utils.ValidateEmail(email) {
+		return nil, newBadRequest("Invalid Email Format !")
+	}
 
-    age := utils.CalculateAge(dateOfBirth)
-    group, err := s.AssignGroup(age)
-    if err != nil {
-	
-        return nil, err
-    }
+	// Parse DOB (YYYY-MM-DD).
+	birth, err := time.Parse("2006-01-02", dob)
+	if err != nil {
+		return nil, newBadRequest("date_of_birth Must Be YYYY-MM-DD")
+	}
 
-    user := &models.User{
-	
-        ID:          uuid.New(),
-        Name:        name,
-        Email:       email,
-        DateOfBirth: dateOfBirth,
-        Group:       group,
-    }
+	if err := utils.ValidateDOB(birth); err != nil { // date_of_birth Cannot Be In The Future.
+		return nil, err
+	}
 
-    if err := s.Repo.Create(user); err != nil {
-	
-        return nil, err
-    }
+	// Check Duplicate Email.
+	exists, err := s.users.EmailExists(context.Background(), email)
+	if err != nil {
+		return nil, err
+	}
 
-    return user, nil
+	if exists {
+
+		return nil, newBadRequest("Email Already Exists !")
+	}
+
+	base := ageToBaseGroup(birth)
+
+	var created *models.User
+	err = s.db.Transaction(func(tx *gorm.DB) error {
+
+		// Lock / Select An Allocatable Group Row Or Create The Next One.
+		g, err := s.groups.FindAllocatableGroupTx(tx, base)
+		if err != nil {
+			return err
+		}
+
+		u := &models.User{Name: name, Email: email, DateOfBirth: birth, Group: g.Name}
+		if err := tx.Create(u).Error; err != nil {
+			return err
+		}
+
+		if err := s.groups.IncrementGroupCountTx(tx, g.Name); err != nil {
+			return err
+		}
+
+		created = u
+
+		return nil
+	})
+
+	if err != nil {
+
+		return nil, err
+	}
+
+	return created, nil
 }
 
-func (s *UserService) UpdateUser(user *models.User, name, email string) error {
+func (s *userService) GetUser(id string) (*models.User, error) {
 
-    if email != "" {
-	
-        if !utils.ValidateEmail(email) {
-		
-            return fmt.Errorf("invalid email")
-        }
-        user.Email = email
-    }
-	
-    if name != "" {
-        user.Name = name
-    }
-	
-    return s.Repo.Update(user)
+	uuidV, err := uuid.Parse(id)
+	if err != nil {
+		return nil, newNotFound("User Not Found !")
+	}
+
+	u, err := s.users.GetByID(context.Background(), uuidV)
+	if err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, newNotFound("User Not Found !")
+		}
+
+		return nil, err
+	}
+
+	return u, nil
+}
+
+func (s *userService) UpdateUser(id string, name, email *string) (*models.User, error) {
+
+	uuidV, err := uuid.Parse(id)
+	if err != nil {
+
+		return nil, newNotFound("User Not Found !")
+	}
+
+	u, err := s.users.GetByID(context.Background(), uuidV)
+	if err != nil {
+
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+
+			return nil, newNotFound("User Not Found !")
+		}
+
+		return nil, err
+	}
+
+	changed := false
+	if name != nil {
+
+		n := strings.TrimSpace(*name)
+		if n == "" {
+
+			return nil, newBadRequest("Name Cannot Be Empty !")
+		}
+
+		u.Name = n
+		changed = true
+	}
+
+	if email != nil {
+
+		e := strings.ToLower(strings.TrimSpace(*email))
+		if !emailRx.MatchString(e) {
+			return nil, newBadRequest("Invalid Email Format !")
+		}
+
+		// If Email Changed, Ensure Uniqueness.
+		if e != u.Email {
+
+			exists, err := s.users.EmailExists(context.Background(), e)
+			if err != nil {
+				return nil, err
+			}
+
+			if exists {
+				return nil, newBadRequest("Email Already Exists !")
+			}
+
+			u.Email = e
+			changed = true
+		}
+	}
+
+	if !changed {
+
+		return u, nil
+	}
+
+	if err := s.users.Update(context.Background(), u, "name", "email"); err != nil {
+		return nil, err
+	}
+
+	return u, nil
+}
+
+func (s *userService) ListUsers(group string) ([]models.User, error) {
+
+	return s.users.List(context.Background(), group)
+}
+
+func ageToBaseGroup(birth time.Time) string {
+
+	age := utils.CalculateAge(birth)
+	switch {
+	case (age >= 0 && age <= 12):
+		return "child"
+	case (age >= 12 && age <= 17):
+		return "teen"
+	case (age >= 17 && age <= 64):
+		return "adult"
+	case age > 64:
+		return "senior"
+	default:
+		return "unset"
+	}
+}
+
+// Errors :
+type apiErr struct {
+	Code int
+	Msg  string
+}
+
+func (e apiErr) Error() string {
+
+	return e.Msg
+}
+
+func newBadRequest(msg string) error {
+
+	return apiErr{Code: 400, Msg: msg}
+}
+
+func newNotFound(msg string) error {
+
+	return apiErr{Code: 404, Msg: msg}
 }

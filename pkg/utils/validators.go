@@ -1,37 +1,37 @@
 package utils
 
 import (
-
-    "regexp"
-    "time"
-    "errors"
+	"errors"
+	"regexp"
+	"time"
 )
+
+var emailRx = regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
 
 func ValidateEmail(email string) bool {
 
-    regex := `^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$`
-    re := regexp.MustCompile(regex)
-    return re.MatchString(email)
+	return emailRx.MatchString(email)
 }
 
 func CalculateAge(dob time.Time) int {
 
-    now := time.Now()
-    age := now.Year() - dob.Year()
-    if now.YearDay() < dob.YearDay() {
-	
-        age--
-    }
-	
-    return age
+	now := time.Now()
+	age := now.Year() - dob.Year()
+
+	if now.Month() < dob.Month() || (now.Month() == dob.Month() && now.Day() < dob.Day()) {
+
+		age--
+	}
+
+	return age
 }
 
 func ValidateDOB(dob time.Time) error {
 
-    if dob.After(time.Now()) {
-	
-        return errors.New("date_of_birth cannot be in the future")
-    }
-	
-    return nil
+	if dob.After(time.Now()) {
+
+		return errors.New("date_of_birth Cannot Be In The Future")
+	}
+
+	return nil
 }

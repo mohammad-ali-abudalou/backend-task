@@ -1,39 +1,26 @@
 version: "3.9"
-
 services:
-  db:
-    image: postgres:15
-    container_name: backend-db
+  postgres:
+    image: postgres:16
     environment:
-      POSTGRES_USER: backend
-      POSTGRES_PASSWORD: backend123
-      POSTGRES_DB: backenddb
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: backend
     ports:
       - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-    networks:
-      - backend-network
-
-  app:
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  api:
     build: .
-    container_name: backend-app
+    environment:
+      DB_DRIVER: postgres
+      DB_DSN: host=postgres user=postgres password=root dbname=backend port=5432 sslmode=disable TimeZone=UTC
+      HTTP_ADDR: ":8080"
     depends_on:
-      - db
+      postgres:
+        condition: service_healthy
     ports:
       - "8080:8080"
-    environment:
-      DB_HOST: db
-      DB_USER: backend
-      DB_PASSWORD: backend123
-      DB_NAME: backenddb
-      DB_PORT: "5432"
-    networks:
-      - backend-network
-
-volumes:
-  pgdata:
-
-networks:
-  backend-network:
-    driver: bridge
