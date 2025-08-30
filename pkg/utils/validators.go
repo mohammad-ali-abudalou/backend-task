@@ -15,10 +15,10 @@ func ValidateEmail(email string) bool {
 
 func CalculateAge(dob time.Time) int {
 
-	now := time.Now()
-	age := now.Year() - dob.Year()
+	timeNow := time.Now()
+	age := timeNow.Year() - dob.Year()
 
-	if now.Month() < dob.Month() || (now.Month() == dob.Month() && now.Day() < dob.Day()) {
+	if timeNow.Month() < dob.Month() || (timeNow.Month() == dob.Month() && timeNow.Day() < dob.Day()) {
 
 		age--
 	}
@@ -26,11 +26,11 @@ func CalculateAge(dob time.Time) int {
 	return age
 }
 
-func ValidateDOB(dob time.Time) error {
+func ValidateDateOfBirth(dateOfBirth time.Time) error {
 
-	if dob.After(time.Now()) {
+	if dateOfBirth.After(time.Now()) {
 
-		return errors.New("date_of_birth Cannot Be In The Future :( ")
+		return errors.New(ErrDateOfBirthCanNotInFuture)
 	}
 
 	return nil

@@ -2,8 +2,10 @@ package db
 
 import (
 	"fmt"
+	"log"
 
 	"backend-task/internal/models"
+	"backend-task/pkg/utils"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/driver/sqlite"
@@ -11,7 +13,7 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-func Open(dsn string, driver string) (*gorm.DB, error) {
+func Open(dsn string, driverName string) (*gorm.DB, error) {
 
 	var (
 		db  *gorm.DB
@@ -20,22 +22,25 @@ func Open(dsn string, driver string) (*gorm.DB, error) {
 
 	gcfg := &gorm.Config{Logger: logger.Default.LogMode(logger.Warn)}
 
-	switch driver {
+	switch driverName {
 
-	case "postgres":
+	case utils.DriverPostgres:
 		db, err = gorm.Open(postgres.Open(dsn), gcfg)
 
-	case "sqlite":
+	case utils.DriverSqlite:
 		db, err = gorm.Open(sqlite.Open(dsn), gcfg)
 
 	default:
-		return nil, fmt.Errorf("Unsupported DB Driver :) : %s", driver)
+		return nil, fmt.Errorf("%s : %s", utils.ErrUnsupportedDBDriver, driverName)
 	}
 
 	return db, err
 }
 
-func Migrate(db *gorm.DB) error {
+func AutoMigrate(db *gorm.DB) {
 
-	return db.AutoMigrate(&models.User{}, &models.Group{})
+	if err := db.AutoMigrate(&models.User{}); err != nil {
+
+		log.Fatalf("%s : %s", utils.ErrMigrationFailed, err)
+	}
 }

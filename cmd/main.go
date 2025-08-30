@@ -5,12 +5,11 @@ import (
 	"os"
 
 	"backend-task/config"
-	"backend-task/internal/models"
 	"backend-task/internal/router"
+	"backend-task/pkg/utils"
 
 	"github.com/joho/godotenv"
 
-	// swagger docs
 	_ "backend-task/docs"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -29,30 +28,28 @@ func main() {
 	// Load Values From .env File.
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("No .env File Found !")
+		log.Println(utils.ErrNoEnvFileFound)
 	}
 
 	// Connect To DB :
 	config.ConnectToDatabase()
 
 	// Auto Migrate Schema :
-	if err := config.DB.AutoMigrate(&models.User{}); err != nil {
-		log.Fatalf("Migration Failed : %v", err)
-	}
+	config.DB.AutoMigrate(config.DB)
 
 	// Routes :
-	r := router.SetupRouters(config.DB)
+	route := router.SetupRouters(config.DB)
 
-	// Swagger endpoint
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// Swagger Endpoint :
+	route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	addr := ":8080"
-	if v := os.Getenv("HTTP_ADDR"); v != "" {
-		addr = v
+	if environmentVariableNamed := os.Getenv("HTTP_ADDR"); environmentVariableNamed != "" {
+		addr = environmentVariableNamed
 	}
 
 	log.Printf("Listening On %s", addr)
-	if err := r.Run(addr); err != nil {
+	if err := route.Run(addr); err != nil {
 		log.Fatal(err)
 	}
 }

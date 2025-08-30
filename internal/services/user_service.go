@@ -16,12 +16,12 @@ import (
 
 type UserService interface {
 	CreateUser(name, email, dob string) (*models.User, error)
-	GetUser(id string) (*models.User, error)
+	GetUserById(id string) (*models.User, error)
 	UpdateUser(id string, name, email *string) (*models.User, error)
-	ListUsers(group string) ([]models.User, error)
+	ListUsersByFilter(group string) ([]models.User, error)
 }
 
-type userServiceStruct struct {
+type UserServiceStruct struct {
 	db     *gorm.DB
 	users  repository.UserRepository
 	groups repository.GroupRepository
@@ -29,38 +29,38 @@ type userServiceStruct struct {
 
 func NewUserService(db *gorm.DB, users repository.UserRepository, groups repository.GroupRepository) UserService {
 
-	return &userServiceStruct{db: db, users: users, groups: groups}
+	return &UserServiceStruct{db: db, users: users, groups: groups}
 }
 
-func (s *userServiceStruct) CreateUser(name, email, dob string) (*models.User, error) {
+func (userService *UserServiceStruct) CreateUser(name, email, dob string) (*models.User, error) {
 
 	name = strings.TrimSpace(name)
 	email = strings.ToLower(strings.TrimSpace(email))
 
 	if name == "" {
 
-		return nil, NewBadRequest("Name Is Required !")
+		return nil, utils.NewBadRequest(utils.ErrNameIsRequired)
 	}
 
 	if !utils.ValidateEmail(email) {
 
-		return nil, NewBadRequest("Invalid Email Format !")
+		return nil, utils.NewBadRequest(utils.ErrInvalidEmailFormat)
 	}
 
 	// Parse DOB (YYYY-MM-DD).
 	birth, err := time.Parse("2006-01-02", dob)
 	if err != nil {
 
-		return nil, NewBadRequest("date_of_birth Must Be YYYY-MM-DD")
+		return nil, utils.NewBadRequest(utils.ErrDateOfBirthFormat)
 	}
 
-	if err := utils.ValidateDOB(birth); err != nil { // birthdate Unable to occur in the future.
+	if err := utils.ValidateDateOfBirth(birth); err != nil { // birthdate Unable To Occur In The Future.
 
 		return nil, err
 	}
 
 	// Check If Email Is Exists.
-	exists, err := s.users.IsEmailExists(context.Background(), email)
+	exists, err := userService.users.IsEmailExists(context.Background(), email)
 	if err != nil {
 
 		return nil, err
@@ -68,32 +68,32 @@ func (s *userServiceStruct) CreateUser(name, email, dob string) (*models.User, e
 
 	if exists {
 
-		return nil, NewBadRequest("Email Already Exists !")
+		return nil, utils.NewBadRequest(utils.ErrEmailAlreadyExists)
 	}
 
-	base := AgeToBaseGroup(birth)
+	baseGroup := ageToBaseGroup(birth)
 
-	var created *models.User
-	err = s.db.Transaction(func(tx *gorm.DB) error {
+	var userCreated *models.User
+	err = userService.db.Transaction(func(db *gorm.DB) error {
 
-		g, err := s.groups.FindAllocatableGroupTx(tx, base)
+		group, err := userService.groups.FindAllocatableGroupTx(db, baseGroup)
 		if err != nil {
 
 			return err
 		}
 
-		u := &models.User{Name: name, Email: email, DateOfBirth: birth, Group: g.Name}
-		if err := tx.Create(u).Error; err != nil {
+		user := &models.User{Name: name, Email: email, DateOfBirth: birth, Group: group.Name}
+		if err := db.Create(user).Error; err != nil {
 
 			return err
 		}
 
-		if err := s.groups.IncrementGroupCountTx(tx, g.Name); err != nil {
+		if err := userService.groups.IncrementGroupCountTx(db, group.Name); err != nil {
 
 			return err
 		}
 
-		created = u
+		userCreated = user
 
 		return nil
 	})
@@ -103,44 +103,44 @@ func (s *userServiceStruct) CreateUser(name, email, dob string) (*models.User, e
 		return nil, err
 	}
 
-	return created, nil
+	return userCreated, nil
 }
 
-func (s *userServiceStruct) GetUser(id string) (*models.User, error) {
+func (userService *UserServiceStruct) GetUserById(id string) (*models.User, error) {
 
-	uuidV, err := uuid.Parse(id)
+	userId, err := uuid.Parse(id)
 	if err != nil {
 
-		return nil, NewNotFound("User Not Found !")
+		return nil, utils.NewBadRequest(utils.ErrUserNotFound)
 	}
 
-	u, err := s.users.GetByID(context.Background(), uuidV)
+	user, err := userService.users.GetUserByID(context.Background(), userId)
 	if err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, NewNotFound("User Not Found !")
+			return nil, utils.NewBadRequest(utils.ErrUserNotFound)
 		}
 
 		return nil, err
 	}
 
-	return u, nil
+	return user, nil
 }
 
-func (s *userServiceStruct) UpdateUser(id string, name, email *string) (*models.User, error) {
+func (userService *UserServiceStruct) UpdateUser(id string, name, email *string) (*models.User, error) {
 
-	uuidV, err := uuid.Parse(id)
+	userId, err := uuid.Parse(id)
 	if err != nil {
 
-		return nil, NewNotFound("User Not Found !")
+		return nil, utils.NewNotFound(utils.ErrUserNotFound)
 	}
 
-	u, err := s.users.GetByID(context.Background(), uuidV)
+	user, err := userService.users.GetUserByID(context.Background(), userId)
 	if err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 
-			return nil, NewNotFound("User Not Found !")
+			return nil, utils.NewNotFound(utils.ErrUserNotFound)
 		}
 
 		return nil, err
@@ -149,99 +149,78 @@ func (s *userServiceStruct) UpdateUser(id string, name, email *string) (*models.
 	changed := false
 	if name != nil {
 
-		n := strings.TrimSpace(*name)
-		if n == "" {
+		newName := strings.TrimSpace(*name)
+		if newName == "" {
 
-			return nil, NewBadRequest("Name Cannot Be Empty !")
+			return nil, utils.NewBadRequest(utils.ErrNameCanNotEmpty)
 		}
 
-		u.Name = n
+		user.Name = newName
 		changed = true
 	}
 
 	if email != nil {
 
-		e := strings.ToLower(strings.TrimSpace(*email))
+		newEmail := strings.ToLower(strings.TrimSpace(*email))
 
-		if !utils.ValidateEmail(e) {
-			return nil, NewBadRequest("Invalid Email Format !")
+		if !utils.ValidateEmail(newEmail) {
+			return nil, utils.NewBadRequest(utils.ErrInvalidEmailFormat)
 		}
 
 		// Email Changed, Ensure Uniqueness Email
-		if e != u.Email {
+		if newEmail != user.Email {
 
-			exists, err := s.users.IsEmailExists(context.Background(), e)
+			exists, err := userService.users.IsEmailExists(context.Background(), newEmail)
 			if err != nil {
 				return nil, err
 			}
 
 			if exists {
-				return nil, NewBadRequest("Email Already Exists !")
+				return nil, utils.NewBadRequest(utils.ErrEmailAlreadyExists)
 			}
 
-			u.Email = e
+			user.Email = newEmail
 			changed = true
 		}
 	}
 
 	if !changed {
 
-		return u, nil
+		return user, nil
 	}
 
-	if err := s.users.Update(context.Background(), u, "name", "email"); err != nil {
+	if err := userService.users.UpdateUser(context.Background(), user, "name", "email"); err != nil {
 
 		return nil, err
 	}
 
-	return u, nil
+	return user, nil
 }
 
-func (s *userServiceStruct) ListUsers(group string) ([]models.User, error) {
+func (userService *UserServiceStruct) ListUsersByFilter(group string) ([]models.User, error) {
 
-	return s.users.List(context.Background(), group)
+	return userService.users.ListUsers(context.Background(), group)
 }
 
-func AgeToBaseGroup(birth time.Time) string {
+func ageToBaseGroup(birth time.Time) string {
 
 	age := utils.CalculateAge(birth)
 
 	switch {
 
 	case (age >= 0 && age <= 12):
-		return "child"
+		return utils.BaseGroupChild
 
 	case (age >= 12 && age <= 17):
-		return "teen"
+		return utils.BaseGroupTeen
 
 	case (age >= 17 && age <= 64):
-		return "adult"
+		return utils.BaseGroupAdult
 
 	case age > 64:
-		return "senior"
+		return utils.BaseGroupSenior
 
 	default:
-		return "unset"
+		return utils.BaseGroupUnset
 	}
-}
-
-// Errors :
-type APIError struct {
-	Code int
-	Msg  string
-}
-
-func (e APIError) Error() string {
-
-	return e.Msg
-}
-
-func NewBadRequest(msg string) error {
-
-	return APIError{Code: 400, Msg: msg}
-}
-
-func NewNotFound(msg string) error {
-
-	return APIError{Code: 404, Msg: msg}
 }

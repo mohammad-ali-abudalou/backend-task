@@ -12,10 +12,10 @@ import (
 )
 
 type UserRepository interface {
-	Create(ctx context.Context, u *models.User) error
-	GetByID(ctx context.Context, id uuid.UUID) (*models.User, error)
-	Update(ctx context.Context, u *models.User, fields ...string) error
-	List(ctx context.Context, group string) ([]models.User, error)
+	CreateNewUser(ctx context.Context, u *models.User) error
+	GetUserByID(ctx context.Context, id uuid.UUID) (*models.User, error)
+	UpdateUser(ctx context.Context, u *models.User, fields ...string) error
+	ListUsers(ctx context.Context, group string) ([]models.User, error)
 	IsEmailExists(ctx context.Context, email string) (bool, error)
 }
 
@@ -42,15 +42,15 @@ func NewGroupRepository(db *gorm.DB) GroupRepository {
 	return &GroupRepositoryDB{db: db}
 }
 
-func (r *UserRepositoryDB) Create(ctx context.Context, u *models.User) error {
+func (r *UserRepositoryDB) CreateNewUser(context context.Context, user *models.User) error {
 
-	return r.db.WithContext(ctx).Create(u).Error
+	return r.db.WithContext(context).Create(user).Error
 }
 
-func (r *UserRepositoryDB) GetByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
+func (r *UserRepositoryDB) GetUserByID(context context.Context, userId uuid.UUID) (*models.User, error) {
 
 	var u models.User
-	if err := r.db.WithContext(ctx).First(&u, "id = ?", id).Error; err != nil {
+	if err := r.db.WithContext(context).First(&u, "id = ?", userId).Error; err != nil {
 
 		return nil, err
 	}
@@ -58,16 +58,16 @@ func (r *UserRepositoryDB) GetByID(ctx context.Context, id uuid.UUID) (*models.U
 	return &u, nil
 }
 
-func (r *UserRepositoryDB) Update(ctx context.Context, u *models.User, fields ...string) error {
+func (r *UserRepositoryDB) UpdateUser(context context.Context, user *models.User, fields ...string) error {
 
-	return r.db.WithContext(ctx).Model(u).Select(fields).Updates(u).Error
+	return r.db.WithContext(context).Model(user).Select(fields).Updates(user).Error
 }
 
-func (r *UserRepositoryDB) List(ctx context.Context, group string) ([]models.User, error) {
+func (r *UserRepositoryDB) ListUsers(context context.Context, group string) ([]models.User, error) {
 
 	var users []models.User
 
-	q := r.db.WithContext(ctx).Order("created_at asc")
+	q := r.db.WithContext(context).Order("created_at asc")
 	if group != "" {
 		q = q.Where("\"group\" = ?", group)
 	}
@@ -79,10 +79,10 @@ func (r *UserRepositoryDB) List(ctx context.Context, group string) ([]models.Use
 	return users, nil
 }
 
-func (r *UserRepositoryDB) IsEmailExists(ctx context.Context, email string) (bool, error) {
+func (r *UserRepositoryDB) IsEmailExists(context context.Context, email string) (bool, error) {
 
 	var count int64
-	if err := r.db.WithContext(ctx).Model(&models.User{}).Where("email = ?", email).Count(&count).Error; err != nil {
+	if err := r.db.WithContext(context).Model(&models.User{}).Where("email = ?", email).Count(&count).Error; err != nil {
 		return false, err
 	}
 
@@ -90,45 +90,45 @@ func (r *UserRepositoryDB) IsEmailExists(ctx context.Context, email string) (boo
 }
 
 // Using Row-Level Locking to Implement Group Repositories.
-func (r *GroupRepositoryDB) FindAllocatableGroupTx(tx *gorm.DB, base string) (*models.Group, error) {
+func (groupRepository *GroupRepositoryDB) FindAllocatableGroupTx(db *gorm.DB, baseGroup string) (*models.Group, error) {
 
-	var g models.Group
-	err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).Where("base = ? AND member_count < 3 ", base).Order("index ASC").First(&g).Error
+	var group models.Group
+	err := db.Clauses(clause.Locking{Strength: "UPDATE"}).Where("base = ? AND member_count < 3 ", baseGroup).Order("index ASC").First(&group).Error
 	if err == nil {
-		return &g, nil
+		return &group, nil
 	}
 
 	if err == gorm.ErrRecordNotFound {
 
 		// Get Max Index.
 		var maxIndex int
-		if err2 := tx.Model(&models.Group{}).Where("base = ?", base).Select("COALESCE(MAX(\"index\"), 0)").Scan(&maxIndex).Error; err2 != nil {
+		if err2 := db.Model(&models.Group{}).Where("base = ?", baseGroup).Select("COALESCE(MAX(\"index\"), 0)").Scan(&maxIndex).Error; err2 != nil {
 
 			return nil, err2
 		}
 
-		g = models.Group{
+		group = models.Group{
 
-			Base:     base,
+			Base:     baseGroup,
 			Index:    maxIndex + 1,
 			Capacity: 3,
-			Name:     fmtGroupName(base, maxIndex+1),
+			Name:     fmtGroupName(baseGroup, maxIndex+1),
 		}
 
-		if err3 := tx.Create(&g).Error; err3 != nil {
+		if err3 := db.Create(&group).Error; err3 != nil {
 
 			return nil, err3
 		}
 
-		return &g, nil
+		return &group, nil
 	}
 
 	return nil, err
 }
 
-func (r *GroupRepositoryDB) IncrementGroupCountTx(tx *gorm.DB, name string) error {
+func (groupRepository *GroupRepositoryDB) IncrementGroupCountTx(db *gorm.DB, name string) error {
 
-	return tx.Model(&models.Group{}).
+	return db.Model(&models.Group{}).
 		Where("name = ? AND member_count < 3 ", name).
 		Update("member_count", gorm.Expr("member_count + 1")).Error
 }

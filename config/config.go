@@ -8,42 +8,43 @@ import (
 	"gorm.io/gorm"
 
 	"backend-task/internal/db"
+	"backend-task/pkg/utils"
 )
 
 type Config struct {
 	DB_DSN    string
-	DB_Driver string // "postgres"
+	DB_Driver string
 }
 
 var DB *gorm.DB
 
 func ConnectToDatabase() {
 
-	var driver = "postgres"
+	var driverName = os.Getenv("DRIVER_NAME")
 
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=UTC",
-		GetEnv("DB_HOST", os.Getenv("DB_HOST")),
-		GetEnv("DB_USER", os.Getenv("DB_USER")),
-		GetEnv("DB_PASSWORD", os.Getenv("DB_PASSWORD")),
-		GetEnv("DB_NAME", os.Getenv("DB_NAME")),
-		GetEnv("DB_PORT", os.Getenv("DB_PORT")),
-		GetEnv("DB_SSLMODE", os.Getenv("DB_SSLMODE")),
+		getEnv("DB_HOST", os.Getenv("DB_HOST")),
+		getEnv("DB_USER", os.Getenv("DB_USER")),
+		getEnv("DB_PASSWORD", os.Getenv("DB_PASSWORD")),
+		getEnv("DB_NAME", os.Getenv("DB_NAME")),
+		getEnv("DB_PORT", os.Getenv("DB_PORT")),
+		getEnv("DB_SSLMODE", os.Getenv("DB_SSLMODE")),
 	)
 
-	db, err := db.Open(dsn, driver)
+	db, err := db.Open(dsn, driverName)
 	if err != nil {
-		log.Fatal("Failed To Connect To Database :( .. ", err)
+		log.Fatal(utils.ErrFailedConnectDatabase, err)
 	}
 
 	DB = db
-	fmt.Println("Database Connected Successfully ^_^ .. ")
+	fmt.Println(utils.ErrDatabaseConnectedSuccessfully)
 }
 
-func GetEnv(key, fallback string) string {
+func getEnv(key, fallback string) string {
 
-	if value, exists := os.LookupEnv(key); exists {
-		return value
+	if environmentVariableNamed, exists := os.LookupEnv(key); exists {
+		return environmentVariableNamed
 	}
 
 	return fallback

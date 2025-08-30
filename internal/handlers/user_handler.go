@@ -10,6 +10,7 @@ import (
 	"gorm.io/gorm"
 
 	service "backend-task/internal/services"
+	"backend-task/pkg/utils"
 )
 
 type UserHandler struct {
@@ -37,26 +38,26 @@ type CreateUserReq struct {
 // @Failure 400 {object} map[string]interface{} "Invalid request body"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /users [post]
-func (h *UserHandler) CreateUser(c *gin.Context) {
+func (userHandler *UserHandler) CreateUser(context *gin.Context) {
 
 	var bodies []CreateUserReq
-	if err := c.ShouldBindJSON(&bodies); err != nil {
+	if err := context.ShouldBindJSON(&bodies); err != nil {
 
-		c.JSON(http.StatusBadRequest, gin.H{"Code": http.StatusBadRequest, "Error": " Invalid Request Body :( .."})
+		context.JSON(http.StatusBadRequest, gin.H{"Code": utils.StatusBadRequest, "Error": utils.ErrInvalidRequestBody})
 		return
 	}
 
 	for _, body := range bodies {
 
-		_, err := h.Service.CreateUser(body.Name, body.Email, body.DateOfBirth)
+		_, err := userHandler.Service.CreateUser(body.Name, body.Email, body.DateOfBirth)
 		if err != nil {
 
-			RespondError(c, err)
+			respondError(context, err)
 			return
 		}
 	}
 
-	c.JSON(http.StatusCreated, bodies)
+	context.JSON(http.StatusCreated, bodies)
 }
 
 type UpdateUserReq struct {
@@ -76,38 +77,38 @@ type UpdateUserReq struct {
 // @Failure 400 {object} map[string]interface{} "Invalid request or ID"
 // @Failure 404 {object} map[string]interface{} "User not found"
 // @Router /users/{id} [patch]
-func (h *UserHandler) UpdateUser(c *gin.Context) {
+func (userHandler *UserHandler) UpdateUser(context *gin.Context) {
 
-	userId := c.Param("id")
+	userId := context.Param("id")
 	_, err := uuid.Parse(userId)
 	if err != nil {
 
-		c.JSON(http.StatusBadRequest, gin.H{"Code": http.StatusBadRequest, "Error": " Invalid Id :( .. "})
+		context.JSON(http.StatusBadRequest, gin.H{"Code": utils.StatusBadRequest, "Error": utils.ErrInvalidId})
 		return
 	}
 
-	_, err = h.Service.GetUser(userId)
+	_, err = userHandler.Service.GetUserById(userId)
 	if err != nil {
 
-		c.JSON(http.StatusNotFound, gin.H{"Code": http.StatusNotFound, "Error": " User Not Found :( .. "})
+		context.JSON(http.StatusNotFound, gin.H{"Code": utils.StatusNotFound, "Error": utils.ErrUserNotFound})
 		return
 	}
 
 	var body UpdateUserReq
-	if err := c.ShouldBindJSON(&body); err != nil {
+	if err := context.ShouldBindJSON(&body); err != nil {
 
-		c.JSON(http.StatusBadRequest, gin.H{"Code": http.StatusBadRequest, "Error": err.Error()}) // " Invalid Request Body :( .."
+		context.JSON(http.StatusBadRequest, gin.H{"Code": http.StatusBadRequest, "Error": err.Error()}) // " Invalid Request Body "
 		return
 	}
 
-	u, err := h.Service.UpdateUser(userId, body.Name, body.Email)
+	u, err := userHandler.Service.UpdateUser(userId, body.Name, body.Email)
 	if err != nil {
 
-		RespondError(c, err)
+		respondError(context, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, u)
+	context.JSON(http.StatusOK, u)
 }
 
 // @Summary Get user by ID
@@ -118,18 +119,18 @@ func (h *UserHandler) UpdateUser(c *gin.Context) {
 // @Success 200 {object} map[string]interface{}
 // @Failure 404 {object} map[string]interface{} "User not found"
 // @Router /users/{id} [get]
-func (h *UserHandler) GetUserByID(c *gin.Context) {
+func (userHandler *UserHandler) GetUserByID(context *gin.Context) {
 
-	id := c.Param("id")
+	userId := context.Param("id")
 
-	u, err := h.Service.GetUser(id)
+	u, err := userHandler.Service.GetUserById(userId)
 	if err != nil {
 
-		RespondError(c, err)
+		respondError(context, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, u)
+	context.JSON(http.StatusOK, u)
 }
 
 // @Summary List users
@@ -140,23 +141,24 @@ func (h *UserHandler) GetUserByID(c *gin.Context) {
 // @Success 200 {array} map[string]interface{}
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /users [get]
-func (h *UserHandler) QueryUsers(c *gin.Context) {
+func (userHandler *UserHandler) QueryUsers(context *gin.Context) {
 
-	group := c.Query("group")
+	group := context.Query("group")
 
-	users, err := h.Service.ListUsers(group)
+	users, err := userHandler.Service.ListUsersByFilter(group)
 	if err != nil {
 
-		RespondError(c, err)
+		respondError(context, err)
 		return
 	}
 
-	c.JSON(http.StatusOK, users)
+	context.JSON(http.StatusOK, users)
 }
 
-func RespondError(c *gin.Context, err error) {
+func respondError(context *gin.Context, err error) {
 
 	if err == nil {
+
 		return
 	}
 
@@ -164,16 +166,16 @@ func RespondError(c *gin.Context, err error) {
 		Error() string
 	}
 
-	if ae, ok := err.(CustomErrors); ok {
+	if customErrors, ok := err.(CustomErrors); ok {
 
-		c.JSON(http.StatusBadRequest, gin.H{"Code": http.StatusBadRequest, "Error": ae.Error()})
+		context.JSON(http.StatusBadRequest, gin.H{"Code": http.StatusBadRequest, "Error": customErrors.Error()})
 		return
 	}
 
 	if errors.Is(err, gorm.ErrRecordNotFound) {
-		c.JSON(http.StatusNotFound, gin.H{"Code": http.StatusNotFound, "Error": "Record Not Found :( .. "})
+		context.JSON(http.StatusNotFound, gin.H{"Code": http.StatusNotFound, "Error": utils.ErrRecordNotFound})
 		return
 	}
 
-	c.JSON(http.StatusInternalServerError, gin.H{"Code": http.StatusInternalServerError, "Error": "Internal Server Error ): .. "})
+	context.JSON(http.StatusInternalServerError, gin.H{"Code": http.StatusInternalServerError, "Error": utils.ErrInternalError})
 }
