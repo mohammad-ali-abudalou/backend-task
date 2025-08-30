@@ -18,13 +18,16 @@ type User struct {
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
+
 	if u.ID == uuid.Nil {
+
 		u.ID = uuid.New()
 	}
+
 	return nil
 }
 
-// Group Is A Bookkeeping Table To Safely Allocate Capacity With Row-Level Locks.
+// Group Is A Bookkeeping Table That Uses Row-Level Locks To Safely Distribute Capacity.
 type Group struct {
 	Name        string `gorm:"primaryKey;size:64"`
 	Base        string `gorm:"not null;index;size:32"` // child | teen | adult | senior

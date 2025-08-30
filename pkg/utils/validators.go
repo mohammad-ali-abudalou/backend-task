@@ -30,7 +30,7 @@ func ValidateDOB(dob time.Time) error {
 
 	if dob.After(time.Now()) {
 
-		return errors.New("date_of_birth Cannot Be In The Future")
+		return errors.New("date_of_birth Cannot Be In The Future :( ")
 	}
 
 	return nil

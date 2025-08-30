@@ -19,6 +19,7 @@ func Open(dsn string, driver string) (*gorm.DB, error) {
 	)
 
 	gcfg := &gorm.Config{Logger: logger.Default.LogMode(logger.Warn)}
+
 	switch driver {
 
 	case "postgres":
@@ -28,7 +29,7 @@ func Open(dsn string, driver string) (*gorm.DB, error) {
 		db, err = gorm.Open(sqlite.Open(dsn), gcfg)
 
 	default:
-		return nil, fmt.Errorf("Unsupported DB Driver: %s", driver)
+		return nil, fmt.Errorf("Unsupported DB Driver :) : %s", driver)
 	}
 
 	return db, err
