@@ -196,8 +196,10 @@ go test ./...
 
 7. **Verify Deployment:**
 
-   * API available at: `http://<EC2-PUBLIC-IP>:8080` # http://51.21.3.224:8080/
-   * Swagger available at: `http://<EC2-PUBLIC-IP>:8080/swagger/index.html` # http://51.21.3.224:8080/swagger/index.html#/users/
+   * API available at: `http://<EC2-PUBLIC-IP>:8080` 
+      # http://51.21.3.224:8080/
+   * Swagger available at: `http://<EC2-PUBLIC-IP>:8080/swagger/index.html` 
+      # http://51.21.3.224:8080/swagger/index.html#/users/
 
 ---
 
@@ -212,5 +214,3 @@ For any questions or clarifications regarding this project:
 * LinkedIn: https://www.linkedin.com/in/mohammad-ali-abudalou/
 
 ```
-
----
