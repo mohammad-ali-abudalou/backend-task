@@ -185,7 +185,7 @@ go test ./...
 
    ```powershell
    $env:DB_DRIVER="postgres"
-   $env:DB_DSN="host=database-2.c1uuy8cm86e8.eu-north-1.rds.amazonaws.com user=postgres password=Database dbname=postgres port=5432 sslmode=disable TimeZone=UTC"
+   $env:DB_DSN="host=database-2.c1uuy8cm86e8.eu-north-1.rds.amazonaws.com user=postgres password=Database dbname=postgres port=5432 sslmode=require TimeZone=UTC"
    ```
 
 6. **Run the Application:**
