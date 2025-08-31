@@ -3,44 +3,18 @@ package tests
 import (
 	"bytes"
 	"encoding/json"
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"testing"
+	"time"
 
-	"backend-task/config"
 	"backend-task/internal/models"
 	"backend-task/internal/router"
+	"backend-task/internal/services/mocks"
 
-	"github.com/joho/godotenv"
 	"github.com/stretchr/testify/assert"
-	"gorm.io/gorm"
 )
-
-var gormDB *gorm.DB
-
-// Setup Test DB & Router :
-func setupTestEnv() http.Handler {
-
-	// Get .env.test File :
-	if err := godotenv.Load(".env.test"); err != nil {
-		log.Println("No .env.test File Found !")
-	}
-
-	// Connect TO DB :
-	config.ConnectToDatabase()
-
-	// Auto Migrate Schema :
-	if err := config.DB.AutoMigrate(&models.User{}); err != nil {
-		log.Fatalf("Migration Failed : %v", err)
-	}
-
-	gormDB = config.DB
-
-	// Setup Routers :
-	return router.SetupRouters(config.DB)
-}
 
 func TestMain(m *testing.M) {
 
@@ -50,7 +24,28 @@ func TestMain(m *testing.M) {
 
 func TestCreateAndAutoGroup(t *testing.T) {
 
-	r := setupTestEnv()
+	mockService := new(mocks.UserService)
+
+	dateOfBirth := time.Date(2025, 1, 4, 0, 0, 0, 0, time.UTC)
+
+	// Mock CreateUser :
+	mockService.On("CreateUser", "Abudalou", "Abudalou@test.com", "2025-01-04").
+		Return(&models.User{
+			Name:        "Abudalou",
+			Email:       "Abudalou@test.com",
+			DateOfBirth: dateOfBirth,
+		}, nil)
+
+	// Mock ListUsersByFilter :
+	mockService.On("ListUsersByFilter", "").Return([]models.User{
+		{
+			Name:        "Abudalou",
+			Email:       "Abudalou@test.com",
+			DateOfBirth: dateOfBirth,
+		},
+	}, nil)
+
+	route := router.SetupRoutersWithService(mockService)
 
 	users := []map[string]string{
 		{"name": "Abudalou", "email": "Abudalou@test.com", "date_of_birth": "2025-01-04"},
@@ -60,22 +55,24 @@ func TestCreateAndAutoGroup(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Simulate To POST /user :
-	req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
-	req.Header.Set("Content-Type", "application/json")
+	request := httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
+	request.Header.Set("Content-Type", "application/json")
 
-	w := httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	defer req.Body.Close()
+	responseRecorder := httptest.NewRecorder()
+	route.ServeHTTP(responseRecorder, request)
+	defer request.Body.Close()
 
-	assert.Equal(t, http.StatusCreated, w.Code, "Expected 201 Created")
+	assert.Equal(t, http.StatusCreated, responseRecorder.Code, "Expected 201 Created")
+	assert.Contains(t, responseRecorder.Body.String(), "Abudalou")
 
 	// Simulate To GET /users :
-	req = httptest.NewRequest(http.MethodGet, "/users", nil)
-	w = httptest.NewRecorder()
-	r.ServeHTTP(w, req)
-	defer req.Body.Close()
+	request = httptest.NewRequest(http.MethodGet, "/users", nil)
+	responseRecorder = httptest.NewRecorder()
+	route.ServeHTTP(responseRecorder, request)
+	defer request.Body.Close()
 
-	assert.Equal(t, http.StatusOK, w.Code, "Expected 200 OK")
+	assert.Equal(t, http.StatusOK, responseRecorder.Code, "Expected 200 OK")
+	assert.Contains(t, responseRecorder.Body.String(), "Abudalou")
 
-	assert.Contains(t, w.Body.String(), "Abudalou")
+	mockService.AssertExpectations(t)
 }

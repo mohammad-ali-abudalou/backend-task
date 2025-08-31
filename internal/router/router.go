@@ -32,15 +32,15 @@ func SetupRouters(db *gorm.DB) *gin.Engine {
 // Injecting A Mock Service :
 func SetupRoutersWithService(userService service.UserService) *gin.Engine {
 
-	r := gin.Default()
+	route := gin.Default()
 
 	handler := handlers.NewUserHandler(userService)
 
 	// Routes :
-	r.POST("/users", handler.CreateUser)
-	r.GET("/users/:id", handler.GetUserByID)
-	r.PATCH("/users/:id", handler.UpdateUser)
-	r.GET("/users", handler.QueryUsers) // Group Filter.
+	route.POST("/users", handler.CreateUser)
+	route.GET("/users/:id", handler.GetUserByID)
+	route.PATCH("/users/:id", handler.UpdateUser)
+	route.GET("/users", handler.QueryUsers) // Group Filter.
 
-	return r
+	return route
 }
