@@ -1,7 +1,7 @@
 ````markdown
-# Backend Task ( Go + Gin + GORM + Postgres )
+# Backend Task (Go + Gin + GORM + Postgres)
 
-Implements the user management API with automatic, capacity-aware age-group assignment.
+Implements a user management REST API with automatic, capacity-aware age-group assignment.
 
 ## Features
 - REST API (Gin)
@@ -10,25 +10,39 @@ Implements the user management API with automatic, capacity-aware age-group assi
 - Validation (email format, uniqueness, DOB in the past)
 - Swagger (OpenAPI 3) auto-generated docs at `/swagger/index.html`
 - Unit tests
-- Docker & docker-compose
+- Safe handling of concurrent user creation
 
 ---
 
-## Run (Docker Compose)
-```bash
-docker compose up --build
-# API at http://localhost:8080
-# Swagger UI at http://localhost:8080/swagger/index.html
-````
+## AWS Deployment
+
+The application is deployed on an **AWS EC2 (Windows)** instance.  
+The database uses **AWS RDS (PostgreSQL)** with public access enabled.  
+
+- **Swagger API:** http://51.21.3.224:8080/swagger/index.html#/users/
+- **RDS Connection Details:**  
+  - Endpoint: `database-2.c1uuy8cm86e8.eu-north-1.rds.amazonaws.com`  
+  - Port: `5432`  
+  - Username: `postgres`  
+  - Password: `Database`
+
+You can connect and test the API directly using the above endpoint.
 
 ---
 
-## Run locally (no Docker)
+## Run Locally (No Docker)
+
+1. Install and start **PostgreSQL** locally.
+2. Set environment variables:
 
 ```bash
 export DB_DRIVER=postgres
-export DB_DSN="host=localhost user=postgres password=root dbname=backend_task port=5432 sslmode=disable TimeZone=UTC"
-# start Postgres first, then:
+export DB_DSN="host=database-2.c1uuy8cm86e8.eu-north-1.rds.amazonaws.com user=postgres password=Database dbname=postgres port=5432 sslmode=require TimeZone=UTC"
+````
+
+3. Start the API:
+
+```bash
 go run ./cmd
 ```
 
@@ -37,15 +51,15 @@ go run ./cmd
 > * Use `go run ./cmd` (not `go run cmd/main.go`) to ensure module imports resolve correctly.
 > * Swagger docs are auto-generated via:
 >
->   ```powershell
->   swag init -g cmd/main.go
->   ```
+> ```powershell
+> swag init -g cmd/main.go
+> ```
 
 ---
 
 ## Endpoints
 
-### Create user
+### Create User
 
 `POST /users`
 
@@ -73,20 +87,20 @@ go run ./cmd
 
 ---
 
-### Get user by id
+### Get User by ID
 
-`GET /users/{id}` → **200 OK** or **404**
+`GET /users/{id}` → **200 OK** or **404 Not Found**
 
 ---
 
-### Update user (name/email only)
+### Update User (Name/Email Only)
 
 `PATCH /users/{id}`
 
 ```json
-{ 
-  "name": "Alice Doe", 
-  "email": "alice.doe@example.com" 
+{
+  "name": "Alice Doe",
+  "email": "alice.doe@example.com"
 }
 ```
 
@@ -94,9 +108,10 @@ go run ./cmd
 
 ---
 
-### List users (optionally by group)
+### List Users (Optionally by Group)
 
 `GET /users?group=adult-1` → **200 OK**
+`GET /users` → List all users
 
 ---
 
@@ -112,10 +127,11 @@ go run ./cmd
 
 ## Design Notes
 
-* Group allocation happens **inside a DB transaction**.
-* We select a row from `groups` where `member_count < capacity` using a row lock (`FOR UPDATE` via GORM), or create the next group with `index = MAX(index)+1`.
-* The `group` field on `User` is **read-only** at the API level and always reflects computed assignment.
-* Swagger annotations (`@Summary`, `@Description`, `@Tags`, etc.) are included directly in handler functions.
+* Group allocation occurs **inside a DB transaction**.
+* Rows from `groups` with `member_count < capacity` are selected using a **row lock** (`FOR UPDATE` via GORM).
+  If full, a new group is created (`index = MAX(index)+1`).
+* The `group` field on `User` is **read-only** at the API level.
+* Swagger annotations (`@Summary`, `@Description`, `@Tags`, etc.) are included in handler functions.
 
 ---
 
@@ -125,18 +141,76 @@ go run ./cmd
 go test ./...
 ```
 
-(uses SQLite in-memory)
+> Uses SQLite in-memory for testing.
 
 ---
 
 ## Deployment
 
-* Build image:
+### Prerequisites
 
-  ```bash
-  docker build -t abwaab/backend-task:latest .
-  ```
-* Push to registry of your choice.
-* AWS: run on ECS Fargate or EC2 + docker-compose. Provide env `DB_DSN` to point to your AWS RDS Postgres.
+* AWS Account with EC2 and RDS access
+* Installed Go runtime on EC2 instance
+* PostgreSQL RDS instance (with public access enabled)
+* Security groups allowing inbound traffic on ports `8080` (API) and `5432` (Postgres)
+
+### Steps
+
+1. **Provision AWS RDS (PostgreSQL):**
+
+   * Create an RDS PostgreSQL instance.
+   * Enable public access.
+   * Note down the `Endpoint`, `Port`, `Username`, and `Password`.
+
+2. **Provision AWS EC2 Instance:**
+
+   * Launch a Windows (or Linux) EC2 instance.
+   * Open port `8080` in the Security Group.
+   * SSH/RDP into the instance.
+
+3. **Install Go and Git (on EC2):**
+
+   ```bash
+   choco install golang git -y   # Windows with Chocolatey
+   ```
+
+4. **Clone the Repository:**
+
+   ```bash
+   git clone https://github.com/mohammad-ali-abudalou/backend-task.git
+   cd backend-task
+   ```
+
+5. **Configure Environment Variables (example for PowerShell):**
+
+   ```powershell
+   $env:DB_DRIVER="postgres"
+   $env:DB_DSN="host=database-2.c1uuy8cm86e8.eu-north-1.rds.amazonaws.com user=postgres password=Database dbname=postgres port=5432 sslmode=disable TimeZone=UTC"
+   ```
+
+6. **Run the Application:**
+
+   ```powershell
+   go run ./cmd
+   ```
+
+7. **Verify Deployment:**
+
+   * API available at: `http://<EC2-PUBLIC-IP>:8080` # http://51.21.3.224:8080/
+   * Swagger available at: `http://<EC2-PUBLIC-IP>:8080/swagger/index.html` # http://51.21.3.224:8080/swagger/index.html#/users/
+
+---
+
+## Contact
+
+For any questions or clarifications regarding this project:
+
+**Mohammad Ali Abu-Dalou**
+
+* Mobile: +962790132315
+* Email: abudalou.mohammad@gmail.com
+* LinkedIn: https://www.linkedin.com/in/mohammad-ali-abudalou/
+
+```
 
 ---
