@@ -1,36 +1,42 @@
 package router
 
 import (
-	handlers "backend-task/internal/handlers"
-	service "backend-task/internal/services"
-	services "backend-task/internal/services"
+	handlers "backend-task/internal/user/handlers"
+	services "backend-task/internal/user/services"
 
-	"backend-task/internal/repository"
+	"backend-task/internal/user/repository"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
 
-func SetupRouters(db *gorm.DB) *gin.Engine {
+type Server struct {
+	*gin.Engine
+}
+
+func SetupRouters(db *gorm.DB) *Server {
+
+	route := gin.Default()
 
 	// Layers of Wire :
 	repository.NewUserRepository(db)
 	service := services.NewUserService(db, repository.NewUserRepository(db), repository.NewGroupRepository(db))
 	handler := handlers.NewUserHandler(service)
 
-	route := gin.Default()
-
 	// Routes :
-	route.POST("/users", handler.CreateUser)
-	route.GET("/users/:id", handler.GetUserByID)
-	route.PATCH("/users/:id", handler.UpdateUser)
-	route.GET("/users", handler.QueryUsers) // Group Filter.
+	api := route.Group("/api")
+	{
+		api.POST("/users", handler.CreateUser)
+		api.GET("/users/:id", handler.GetUserByID)
+		api.PATCH("/users/:id", handler.UpdateUser)
+		api.GET("/users", handler.QueryUsers) // Group Filter.
+	}
 
-	return route
+	return &Server{route}
 }
 
 // Injecting A Mock Service :
-func SetupRoutersWithService(userService service.UserService) *gin.Engine {
+func SetupRoutersWithService(userService services.UserService) *gin.Engine {
 
 	route := gin.Default()
 

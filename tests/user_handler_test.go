@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
@@ -16,13 +15,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestMain(m *testing.M) {
-
-	code := m.Run()
-	os.Exit(code)
-}
-
-func TestCreateAndAutoGroup(t *testing.T) {
+func TestCreateAndAutoGroupHandler(t *testing.T) {
 
 	mockService := new(mocks.UserService)
 

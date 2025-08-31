@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"backend-task/internal/models"
+	"backend-task/internal/user/models"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"

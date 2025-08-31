@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"backend-task/internal/models"
-	"backend-task/internal/repository"
-	"backend-task/pkg/utils"
+	"backend-task/internal/user/models"
+	repository "backend-task/internal/user/repository"
+	"backend-task/internal/utils"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
@@ -27,9 +27,9 @@ type UserServiceStruct struct {
 	groups repository.GroupRepository
 }
 
-func NewUserService(db *gorm.DB, users repository.UserRepository, groups repository.GroupRepository) UserService {
+func NewUserService(db *gorm.DB, user repository.UserRepository, group repository.GroupRepository) UserService {
 
-	return &UserServiceStruct{db: db, users: users, groups: groups}
+	return &UserServiceStruct{db: db, users: user, groups: group}
 }
 
 func (userService *UserServiceStruct) CreateUser(name, email, dob string) (*models.User, error) {
@@ -39,19 +39,19 @@ func (userService *UserServiceStruct) CreateUser(name, email, dob string) (*mode
 
 	if name == "" {
 
-		return nil, utils.NewBadRequest(utils.ErrNameIsRequired)
+		return nil, utils.NewBadRequest(utils.ErrNameIsRequired.Error())
 	}
 
 	if !utils.ValidateEmail(email) {
 
-		return nil, utils.NewBadRequest(utils.ErrInvalidEmailFormat)
+		return nil, utils.NewBadRequest(utils.ErrInvalidEmailFormat.Error())
 	}
 
 	// Parse DOB (YYYY-MM-DD).
 	birth, err := time.Parse("2006-01-02", dob)
 	if err != nil {
 
-		return nil, utils.NewBadRequest(utils.ErrDateOfBirthFormat)
+		return nil, utils.NewBadRequest(utils.ErrDateOfBirthFormat.Error())
 	}
 
 	if err := utils.ValidateDateOfBirth(birth); err != nil { // birthdate Unable To Occur In The Future.
@@ -68,7 +68,7 @@ func (userService *UserServiceStruct) CreateUser(name, email, dob string) (*mode
 
 	if exists {
 
-		return nil, utils.NewBadRequest(utils.ErrEmailAlreadyExists)
+		return nil, utils.NewBadRequest(utils.ErrEmailAlreadyExists.Error())
 	}
 
 	baseGroup := ageToBaseGroup(birth)
@@ -111,14 +111,14 @@ func (userService *UserServiceStruct) GetUserById(id string) (*models.User, erro
 	userId, err := uuid.Parse(id)
 	if err != nil {
 
-		return nil, utils.NewBadRequest(utils.ErrUserNotFound)
+		return nil, utils.NewBadRequest(utils.ErrUserNotFound.Error())
 	}
 
 	user, err := userService.users.GetUserByID(context.Background(), userId)
 	if err != nil {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, utils.NewBadRequest(utils.ErrUserNotFound)
+			return nil, utils.NewBadRequest(utils.ErrUserNotFound.Error())
 		}
 
 		return nil, err
@@ -132,7 +132,7 @@ func (userService *UserServiceStruct) UpdateUser(id string, name, email *string)
 	userId, err := uuid.Parse(id)
 	if err != nil {
 
-		return nil, utils.NewNotFound(utils.ErrUserNotFound)
+		return nil, utils.NewNotFound(utils.ErrUserNotFound.Error())
 	}
 
 	user, err := userService.users.GetUserByID(context.Background(), userId)
@@ -140,7 +140,7 @@ func (userService *UserServiceStruct) UpdateUser(id string, name, email *string)
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 
-			return nil, utils.NewNotFound(utils.ErrUserNotFound)
+			return nil, utils.NewNotFound(utils.ErrUserNotFound.Error())
 		}
 
 		return nil, err
@@ -152,7 +152,7 @@ func (userService *UserServiceStruct) UpdateUser(id string, name, email *string)
 		newName := strings.TrimSpace(*name)
 		if newName == "" {
 
-			return nil, utils.NewBadRequest(utils.ErrNameCanNotEmpty)
+			return nil, utils.NewBadRequest(utils.ErrNameCanNotEmpty.Error())
 		}
 
 		user.Name = newName
@@ -164,7 +164,7 @@ func (userService *UserServiceStruct) UpdateUser(id string, name, email *string)
 		newEmail := strings.ToLower(strings.TrimSpace(*email))
 
 		if !utils.ValidateEmail(newEmail) {
-			return nil, utils.NewBadRequest(utils.ErrInvalidEmailFormat)
+			return nil, utils.NewBadRequest(utils.ErrInvalidEmailFormat.Error())
 		}
 
 		// Email Changed, Ensure Uniqueness Email
@@ -176,7 +176,7 @@ func (userService *UserServiceStruct) UpdateUser(id string, name, email *string)
 			}
 
 			if exists {
-				return nil, utils.NewBadRequest(utils.ErrEmailAlreadyExists)
+				return nil, utils.NewBadRequest(utils.ErrEmailAlreadyExists.Error())
 			}
 
 			user.Email = newEmail

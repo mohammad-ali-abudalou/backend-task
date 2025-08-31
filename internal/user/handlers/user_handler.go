@@ -1,4 +1,4 @@
-package handler
+package handlers
 
 import (
 	"errors"
@@ -9,8 +9,8 @@ import (
 
 	"gorm.io/gorm"
 
-	service "backend-task/internal/services"
-	"backend-task/pkg/utils"
+	service "backend-task/internal/user/services"
+	"backend-task/internal/utils"
 )
 
 type UserHandler struct {

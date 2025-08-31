@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	models "backend-task/internal/models"
+	models "backend-task/internal/user/models"
 
 	mock "github.com/stretchr/testify/mock"
 )

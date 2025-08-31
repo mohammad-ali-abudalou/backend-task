@@ -8,6 +8,26 @@ import (
 	"gorm.io/gorm"
 )
 
+// Common API Error Messages :
+var (
+	ErrNoEnvFileFound                = errors.New("No .env File Found")
+	ErrFailedConnectDatabase         = errors.New("Failed To Connect To Database")
+	ErrDatabaseConnectedSuccessfully = errors.New("Database Connected Successfully")
+	ErrUnsupportedDBDriver           = errors.New("Unsupported DB Driver")
+	ErrMigrationFailed               = errors.New("Migration Failed")
+	ErrInvalidRequestBody            = errors.New("Invalid Request Body")
+	ErrInvalidId                     = errors.New("Invalid Id")
+	ErrUserNotFound                  = errors.New("User Not Found")
+	ErrNameIsRequired                = errors.New("Name Is Required")
+	ErrInvalidEmailFormat            = errors.New("Invalid Email Format")
+	ErrDateOfBirthFormat             = errors.New("date_of_birth Must Be YYYY-MM-DD")
+	ErrEmailAlreadyExists            = errors.New("Email Already Exists")
+	ErrNameCanNotEmpty               = errors.New("Name Cannot Be Empty")
+	ErrRecordNotFound                = errors.New("Record Not Found")
+	ErrInternalError                 = errors.New("Internal Server Error")
+	ErrDateOfBirthCanNotInFuture     = errors.New("date_of_birth Cannot Be In The Future")
+)
+
 type APIError struct {
 	Code    int
 	Message string

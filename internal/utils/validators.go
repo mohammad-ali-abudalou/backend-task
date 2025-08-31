@@ -30,7 +30,7 @@ func ValidateDateOfBirth(dateOfBirth time.Time) error {
 
 	if dateOfBirth.After(time.Now()) {
 
-		return errors.New(ErrDateOfBirthCanNotInFuture)
+		return errors.New(ErrDateOfBirthCanNotInFuture.Error())
 	}
 
 	return nil
