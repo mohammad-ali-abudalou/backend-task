@@ -28,3 +28,15 @@ const (
 	BaseGroupSenior = "senior"
 	BaseGroupUnset  = "unset"
 )
+
+// Data Source Name :
+const (
+	DSN_DRIVER_NAME = "DRIVER_NAME"
+	DSN_DB_HOST     = "DB_HOST"
+	DSN_DB_USER     = "DB_USER"
+	DSN_DB_PASSWORD = "DB_PASSWORD"
+	DSN_DB_NAME     = "DB_NAME"
+	DSN_DB_PORT     = "DB_PORT"
+	DSN_DB_SSLMODE  = "DB_SSLMODE"
+	DSN_DB_TIMEZONE = "DB_TIMEZONE"
+)

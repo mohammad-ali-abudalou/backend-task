@@ -10,8 +10,22 @@ RUN go mod download
 COPY . .
 
 # Build the Go binary
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false -o server ./cmd
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false-o backend-task server ./cmd/app
 
+# Expose API port
 EXPOSE 8080
 
 # --- Runtime stage ---
+
+# ============================
+# Stage 2: Run
+# ============================
+FROM alpine:3.19
+
+WORKDIR /root/
+
+# Expose API port
+EXPOSE 8080
+
+# Run the app
+CMD ["./backend-task"]

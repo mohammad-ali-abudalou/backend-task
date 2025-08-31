@@ -1,6 +1,6 @@
 basePath: /
 definitions:
-  handler.CreateUserReq:
+  models.CreateUserReq:
     properties:
       date_of_birth:
         type: string
@@ -13,7 +13,7 @@ definitions:
     - email
     - name
     type: object
-  handler.UpdateUserReq:
+  models.UpdateUserReq:
     properties:
       email:
         type: string
@@ -67,7 +67,7 @@ paths:
         required: true
         schema:
           items:
-            $ref: '#/definitions/handler.CreateUserReq'
+            $ref: '#/definitions/models.CreateUserReq'
           type: array
       produces:
       - application/json
@@ -76,7 +76,7 @@ paths:
           description: Created
           schema:
             items:
-              $ref: '#/definitions/handler.CreateUserReq'
+              $ref: '#/definitions/models.CreateUserReq'
             type: array
         "400":
           description: Invalid request body
@@ -131,7 +131,7 @@ paths:
         name: user
         required: true
         schema:
-          $ref: '#/definitions/handler.UpdateUserReq'
+          $ref: '#/definitions/models.UpdateUserReq'
       produces:
       - application/json
       responses:

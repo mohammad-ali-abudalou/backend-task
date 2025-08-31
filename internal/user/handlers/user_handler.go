@@ -1,14 +1,12 @@
 package handlers
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	"gorm.io/gorm"
-
+	models "backend-task/internal/user/models"
 	service "backend-task/internal/user/services"
 	"backend-task/internal/utils"
 )
@@ -22,25 +20,19 @@ func NewUserHandler(s service.UserService) *UserHandler {
 	return &UserHandler{Service: s}
 }
 
-type CreateUserReq struct {
-	Name        string `json:"name" binding:"required"`
-	Email       string `json:"email" binding:"required"`
-	DateOfBirth string `json:"date_of_birth" binding:"required"`
-}
-
 // @Summary Create one or more users
 // @Description Creates new users and assigns them to groups automatically (up to 3 per group).
 // @Tags users
 // @Accept json
 // @Produce json
-// @Param users body []CreateUserReq true "User info array"
-// @Success 201 {array} CreateUserReq
+// @Param users body []models.CreateUserReq true "User info array"
+// @Success 201 {array} models.CreateUserReq
 // @Failure 400 {object} map[string]interface{} "Invalid request body"
 // @Failure 500 {object} map[string]interface{} "Internal server error"
 // @Router /users [post]
 func (userHandler *UserHandler) CreateUser(context *gin.Context) {
 
-	var bodies []CreateUserReq
+	var bodies []models.CreateUserReq
 	if err := context.ShouldBindJSON(&bodies); err != nil {
 
 		context.JSON(http.StatusBadRequest, gin.H{"Code": utils.StatusBadRequest, "Error": utils.ErrInvalidRequestBody})
@@ -52,18 +44,12 @@ func (userHandler *UserHandler) CreateUser(context *gin.Context) {
 		_, err := userHandler.Service.CreateUser(body.Name, body.Email, body.DateOfBirth)
 		if err != nil {
 
-			respondError(context, err)
+			utils.RespondError(context, err)
 			return
 		}
 	}
 
 	context.JSON(http.StatusCreated, bodies)
-}
-
-type UpdateUserReq struct {
-	Name  *string `json:"name"`
-	Email *string `json:"email"`
-	// To Enforce Read-Only, The Group Is Purposefully Left Out.
 }
 
 // @Summary Update a user
@@ -72,7 +58,7 @@ type UpdateUserReq struct {
 // @Accept json
 // @Produce json
 // @Param id path string true "User ID"
-// @Param user body UpdateUserReq true "User info"
+// @Param user body models.UpdateUserReq true "User info"
 // @Success 200 {object} map[string]interface{}
 // @Failure 400 {object} map[string]interface{} "Invalid request or ID"
 // @Failure 404 {object} map[string]interface{} "User not found"
@@ -94,7 +80,7 @@ func (userHandler *UserHandler) UpdateUser(context *gin.Context) {
 		return
 	}
 
-	var body UpdateUserReq
+	var body models.UpdateUserReq
 	if err := context.ShouldBindJSON(&body); err != nil {
 
 		context.JSON(http.StatusBadRequest, gin.H{"Code": http.StatusBadRequest, "Error": err.Error()}) // " Invalid Request Body "
@@ -104,7 +90,7 @@ func (userHandler *UserHandler) UpdateUser(context *gin.Context) {
 	u, err := userHandler.Service.UpdateUser(userId, body.Name, body.Email)
 	if err != nil {
 
-		respondError(context, err)
+		utils.RespondError(context, err)
 		return
 	}
 
@@ -126,7 +112,7 @@ func (userHandler *UserHandler) GetUserByID(context *gin.Context) {
 	u, err := userHandler.Service.GetUserById(userId)
 	if err != nil {
 
-		respondError(context, err)
+		utils.RespondError(context, err)
 		return
 	}
 
@@ -148,34 +134,9 @@ func (userHandler *UserHandler) QueryUsers(context *gin.Context) {
 	users, err := userHandler.Service.ListUsersByFilter(group)
 	if err != nil {
 
-		respondError(context, err)
+		utils.RespondError(context, err)
 		return
 	}
 
 	context.JSON(http.StatusOK, users)
-}
-
-func respondError(context *gin.Context, err error) {
-
-	if err == nil {
-
-		return
-	}
-
-	type CustomErrors interface {
-		Error() string
-	}
-
-	if customErrors, ok := err.(CustomErrors); ok {
-
-		context.JSON(http.StatusBadRequest, gin.H{"Code": http.StatusBadRequest, "Error": customErrors.Error()})
-		return
-	}
-
-	if errors.Is(err, gorm.ErrRecordNotFound) {
-		context.JSON(http.StatusNotFound, gin.H{"Code": http.StatusNotFound, "Error": utils.ErrRecordNotFound})
-		return
-	}
-
-	context.JSON(http.StatusInternalServerError, gin.H{"Code": http.StatusInternalServerError, "Error": utils.ErrInternalError})
 }

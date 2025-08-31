@@ -71,7 +71,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handler.CreateUserReq"
+                                "$ref": "#/definitions/models.CreateUserReq"
                             }
                         }
                     }
@@ -82,7 +82,7 @@
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handler.CreateUserReq"
+                                "$ref": "#/definitions/models.CreateUserReq"
                             }
                         }
                     },
@@ -165,7 +165,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.UpdateUserReq"
+                            "$ref": "#/definitions/models.UpdateUserReq"
                         }
                     }
                 ],
@@ -196,7 +196,7 @@
         }
     },
     "definitions": {
-        "handler.CreateUserReq": {
+        "models.CreateUserReq": {
             "type": "object",
             "required": [
                 "date_of_birth",
@@ -215,7 +215,7 @@
                 }
             }
         },
-        "handler.UpdateUserReq": {
+        "models.UpdateUserReq": {
             "type": "object",
             "properties": {
                 "email": {

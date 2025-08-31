@@ -11,8 +11,3 @@ func Error(msg string) {
 
 	log.Printf("[ERROR] %s", msg)
 }
-
-func Fatal(msg string) {
-
-	log.Fatal("[FATAL] %s", msg)
-}

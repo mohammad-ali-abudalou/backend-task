@@ -77,7 +77,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handler.CreateUserReq"
+                                "$ref": "#/definitions/models.CreateUserReq"
                             }
                         }
                     }
@@ -88,7 +88,7 @@ const docTemplate = `{
                         "schema": {
                             "type": "array",
                             "items": {
-                                "$ref": "#/definitions/handler.CreateUserReq"
+                                "$ref": "#/definitions/models.CreateUserReq"
                             }
                         }
                     },
@@ -171,7 +171,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/handler.UpdateUserReq"
+                            "$ref": "#/definitions/models.UpdateUserReq"
                         }
                     }
                 ],
@@ -202,7 +202,7 @@ const docTemplate = `{
         }
     },
     "definitions": {
-        "handler.CreateUserReq": {
+        "models.CreateUserReq": {
             "type": "object",
             "required": [
                 "date_of_birth",
@@ -221,7 +221,7 @@ const docTemplate = `{
                 }
             }
         },
-        "handler.UpdateUserReq": {
+        "models.UpdateUserReq": {
             "type": "object",
             "properties": {
                 "email": {

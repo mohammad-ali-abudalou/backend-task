@@ -6,7 +6,7 @@ import (
 	"backend-task/internal/app"
 	"backend-task/internal/config"
 
-	_ "backend-task/docs"
+	_ "backend-task/docs" // <- Swagger docs import
 )
 
 // @title Backend Task API

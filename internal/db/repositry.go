@@ -18,16 +18,16 @@ var DB *gorm.DB
 
 func InitDB() *gorm.DB {
 
-	var driverName = os.Getenv("DRIVER_NAME")
+	var driverName = os.Getenv(utils.DSN_DRIVER_NAME)
 
 	dsn := fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%s sslmode=%s TimeZone=UTC",
-		getEnv("DB_HOST", os.Getenv("DB_HOST")),
-		getEnv("DB_USER", os.Getenv("DB_USER")),
-		getEnv("DB_PASSWORD", os.Getenv("DB_PASSWORD")),
-		getEnv("DB_NAME", os.Getenv("DB_NAME")),
-		getEnv("DB_PORT", os.Getenv("DB_PORT")),
-		getEnv("DB_SSLMODE", os.Getenv("DB_SSLMODE")),
+		getEnv(utils.DSN_DB_HOST, os.Getenv(utils.DSN_DB_HOST)),
+		getEnv(utils.DSN_DB_USER, os.Getenv(utils.DSN_DB_USER)),
+		getEnv(utils.DSN_DB_PASSWORD, os.Getenv(utils.DSN_DB_PASSWORD)),
+		getEnv(utils.DSN_DB_NAME, os.Getenv(utils.DSN_DB_NAME)),
+		getEnv(utils.DSN_DB_PORT, os.Getenv(utils.DSN_DB_PORT)),
+		getEnv(utils.DSN_DB_SSLMODE, os.Getenv(utils.DSN_DB_SSLMODE)),
 	)
 
 	gormDB, err := open(dsn, driverName)
@@ -36,7 +36,7 @@ func InitDB() *gorm.DB {
 	}
 
 	// Auto Migrate Schema :
-	AutoMigrate(gormDB)
+	autoMigrate(gormDB)
 
 	fmt.Println(utils.ErrDatabaseConnectedSuccessfully)
 
@@ -78,7 +78,7 @@ func open(dsn string, driverName string) (*gorm.DB, error) {
 	return db, err
 }
 
-func AutoMigrate(db *gorm.DB) {
+func autoMigrate(db *gorm.DB) {
 
 	if err := db.AutoMigrate(&models.User{}, &models.Group{}); err != nil {
 

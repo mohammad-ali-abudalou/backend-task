@@ -43,12 +43,12 @@ export DB_DSN="host=database-2.c1uuy8cm86e8.eu-north-1.rds.amazonaws.com user=po
 3. Start the API:
 
 ```bash
-go run ./cmd
+go run ./cmd/app
 ```
 
 > **Note for Windows (PowerShell):**
 >
-> * Use `go run ./cmd` (not `go run cmd/main.go`) to ensure module imports resolve correctly.
+> * Use `go run ./cmd/app` (not `go run ./cmd/app/main.go`) to ensure module imports resolve correctly.
 > * Swagger docs are auto-generated via:
 >
 > ```powershell
@@ -191,7 +191,7 @@ go test ./...
 6. **Run the Application:**
 
    ```powershell
-   go run ./cmd
+   go run ./cmd/app
    ```
 
 7. **Verify Deployment:**

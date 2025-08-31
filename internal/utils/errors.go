@@ -33,6 +33,11 @@ type APIError struct {
 	Message string
 }
 
+// Handle Issue In Custom APIs :
+type CustomErrors interface {
+	Error() string
+}
+
 func (apiError APIError) Error() string {
 	return apiError.Message
 }
@@ -54,11 +59,6 @@ func RespondError(context *gin.Context, err error) {
 	if err == nil {
 
 		return
-	}
-
-	// Handle Issue In Custom APIs :
-	type CustomErrors interface {
-		Error() string
 	}
 
 	if customErrors, ok := err.(CustomErrors); ok {

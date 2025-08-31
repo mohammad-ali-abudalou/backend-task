@@ -5,6 +5,7 @@ import (
 	"backend-task/internal/router"
 	"backend-task/internal/utils"
 	"fmt"
+	"log"
 	"os"
 
 	swaggerFiles "github.com/swaggo/files"
@@ -33,7 +34,7 @@ func InitializeContainer() *Container {
 
 	utils.Info(fmt.Sprintf("Listening On %s", addr))
 	if err := route.Run(addr); err != nil {
-		utils.Fatal(err.Error())
+		log.Fatal(err.Error())
 	}
 
 	return &Container{Server: route}
