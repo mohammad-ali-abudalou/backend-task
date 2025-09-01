@@ -1,11 +1,11 @@
 package router
 
 import (
-	handlers "backend-task/internal/user/handlers"
+	"backend-task/internal/user/handlers"
+	"backend-task/internal/user/repository"
 	services "backend-task/internal/user/services"
 
-	"backend-task/internal/user/repository"
-
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 )
@@ -14,39 +14,50 @@ type Server struct {
 	*gin.Engine
 }
 
+// Setup Routers Builds All Routes And Dependencies :
 func SetupRouters(db *gorm.DB) *Server {
 
-	route := gin.Default()
+	router := gin.New()
 
-	// Layers of Wire :
-	repository.NewUserRepository(db)
-	service := services.NewUserService(db, repository.NewUserRepository(db), repository.NewGroupRepository(db))
-	handler := handlers.NewUserHandler(service)
+	// Middlewares :
+	router.Use(gin.Logger())   // Request Logging.
+	router.Use(gin.Recovery()) // Rcover From Panics.
+	router.Use(cors.Default()) // CORS Enabled By Default.
 
-	// Routes :
-	api := route.Group("/api")
+	// Wire layers :
+	userRepo := repository.NewUserRepository(db)
+	groupRepo := repository.NewGroupRepository(db)
+	userService := services.NewUserService(db, userRepo, groupRepo)
+	userHandler := handlers.NewUserHandler(userService)
+
+	// Versioned API Routes :
+	api := router.Group("/api/v1")
 	{
-		api.POST("/users", handler.CreateUser)
-		api.GET("/users/:id", handler.GetUserByID)
-		api.PATCH("/users/:id", handler.UpdateUser)
-		api.GET("/users", handler.QueryUsers) // Group Filter.
+		api.POST("/users", userHandler.CreateUser)
+		api.GET("/users/:id", userHandler.GetUserByID)
+		api.PATCH("/users/:id", userHandler.UpdateUser)
+		api.GET("/users", userHandler.QueryUsers) // Supports Group Filter.
 	}
 
-	return &Server{route}
+	// Health Check ( Useful For Kubernetes, Docker, etc. )
+	router.GET("/health", func(context *gin.Context) {
+
+		context.JSON(200, gin.H{"status": "ok"})
+	})
+
+	return &Server{router}
 }
 
-// Injecting A Mock Service :
+// For Testing With Mocks :
 func SetupRoutersWithService(userService services.UserService) *gin.Engine {
 
-	route := gin.Default()
-
+	router := gin.Default()
 	handler := handlers.NewUserHandler(userService)
 
-	// Routes :
-	route.POST("/users", handler.CreateUser)
-	route.GET("/users/:id", handler.GetUserByID)
-	route.PATCH("/users/:id", handler.UpdateUser)
-	route.GET("/users", handler.QueryUsers) // Group Filter.
+	router.POST("/users", handler.CreateUser)
+	router.GET("/users/:id", handler.GetUserByID)
+	router.PATCH("/users/:id", handler.UpdateUser)
+	router.GET("/users", handler.QueryUsers)
 
-	return route
+	return router
 }

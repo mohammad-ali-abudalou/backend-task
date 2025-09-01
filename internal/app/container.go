@@ -3,10 +3,6 @@ package app
 import (
 	"backend-task/internal/db"
 	"backend-task/internal/router"
-	"backend-task/internal/utils"
-	"fmt"
-	"log"
-	"os"
 
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
@@ -16,26 +12,17 @@ type Container struct {
 	Server *router.Server
 }
 
+// InitializeContainer Builds And Wires Dependencies But Does NOT Start The Server.
 func InitializeContainer() *Container {
 
-	// Initial DB :
-	conn := db.InitDB()
+	// Initialize DB
+	connection := db.InitDB()
 
 	// Setup Routers :
-	route := router.SetupRouters(conn)
+	route := router.SetupRouters(connection)
 
-	// Swagger Endpoint :
+	// Add Swagger Endpoint :
 	route.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	addr := ":8080"
-	if environmentVariableNamed := os.Getenv("HTTP_ADDR"); environmentVariableNamed != "" {
-		addr = environmentVariableNamed
-	}
-
-	utils.Info(fmt.Sprintf("Listening On %s", addr))
-	if err := route.Run(addr); err != nil {
-		log.Fatal(err.Error())
-	}
 
 	return &Container{Server: route}
 }

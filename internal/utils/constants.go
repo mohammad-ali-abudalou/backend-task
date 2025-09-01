@@ -1,12 +1,12 @@
 package utils
 
-//
+// ---------------- App Info ----------------
 const (
 	AppName = "Backend TASK API"
 	Version = "1.0.0"
 )
 
-// HTTP Status Codes :
+// ---------------- HTTP Status Codes ----------------
 const (
 	StatusOK                  = 200
 	StatusBadRequest          = 400
@@ -14,13 +14,13 @@ const (
 	StatusInternalServerError = 500
 )
 
-// Driver Type :
+// ---------------- Database Driver Types ----------------
 const (
 	DriverPostgres = "postgres"
 	DriverSqlite   = "sqlite"
 )
 
-// Age To Base Group ( Group Assignment ) :
+// ---------------- Age To Base Group ( For Group Assignment ) ----------------
 const (
 	BaseGroupChild  = "child"
 	BaseGroupTeen   = "teen"
@@ -29,7 +29,7 @@ const (
 	BaseGroupUnset  = "unset"
 )
 
-// Data Source Name :
+// ---------------- Data Source Name ( DSN ) Environment Keys ----------------
 const (
 	DSN_DRIVER_NAME = "DRIVER_NAME"
 	DSN_DB_HOST     = "DB_HOST"
@@ -38,5 +38,11 @@ const (
 	DSN_DB_NAME     = "DB_NAME"
 	DSN_DB_PORT     = "DB_PORT"
 	DSN_DB_SSLMODE  = "DB_SSLMODE"
-	DSN_DB_TIMEZONE = "DB_TIMEZONE"
+
+	AUTO_MIGRATE = "AUTO_MIGRATE"
+)
+
+// ---------------- Group Settings ----------------
+const (
+	GroupCapacity = 3 // Maximum users per group
 )

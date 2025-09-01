@@ -1,10 +1,34 @@
-# Ignore backup files
-*.bak
-
-# Ignore compiled binaries
+# Go Build Outputs :
 *.exe
 *.out
+*.test
+*.exe~
+*_test.go
 
-# Ignore OS-specific files
+# Dependency Directories :
+vendor/
+
+# OS-Specific Files :
 .DS_Store
 Thumbs.db
+
+# Backup Files :
+*.bak
+*.swp
+*.tmp
+
+# IDE Files :
+.vscode/
+.idea/
+*.iml
+
+# Environment Files :
+.env
+.env.local
+.env.*.local
+
+# Logs :
+*.log
+
+# Coverage Files :
+coverage.out

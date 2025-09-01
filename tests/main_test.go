@@ -5,74 +5,68 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
-	"os"
 	"testing"
 	"time"
 
 	"backend-task/internal/router"
 	"backend-task/internal/user/models"
-	"backend-task/internal/user/services/mocks"
+	mocks "backend-task/tests/mocks"
 
 	"github.com/stretchr/testify/assert"
 )
-
-func TestMain(m *testing.M) {
-
-	code := m.Run()
-	os.Exit(code)
-}
 
 func TestCreateAndAutoGroup(t *testing.T) {
 
 	mockService := new(mocks.UserService)
 
-	dateOfBirth := time.Date(2025, 1, 4, 0, 0, 0, 0, time.UTC)
+	// Use A Valid DOB In The Past.
+	dateOfBirth := time.Date(2000, 1, 4, 0, 0, 0, 0, time.UTC)
 
-	// Mock CreateUser :
-	mockService.On("CreateUser", "Abudalou", "Abudalou@test.com", "2025-01-04").
+	// Mock CreateUser.
+	mockService.On("CreateUser", "Abudalou", "abudalou@test.com", "2000-01-04").
 		Return(&models.User{
 			Name:        "Abudalou",
-			Email:       "Abudalou@test.com",
+			Email:       "abudalou@test.com",
 			DateOfBirth: dateOfBirth,
 		}, nil)
 
-	// Mock ListUsersByFilter :
-	mockService.On("ListUsersByFilter", "").Return([]models.User{
-		{
-			Name:        "Abudalou",
-			Email:       "Abudalou@test.com",
-			DateOfBirth: dateOfBirth,
-		},
-	}, nil)
+	// Mock ListUsersByFilter.
+	mockService.On("ListUsersByFilter", "").
+		Return([]models.User{
+			{
+				Name:        "Abudalou",
+				Email:       "abudalou@test.com",
+				DateOfBirth: dateOfBirth,
+			},
+		}, nil)
 
+	// Setup Router With Mock Service.
 	route := router.SetupRoutersWithService(mockService)
 
 	users := []map[string]string{
-		{"name": "Abudalou", "email": "Abudalou@test.com", "date_of_birth": "2025-01-04"},
+		{"name": "Abudalou", "email": "abudalou@test.com", "date_of_birth": "2000-01-04"},
 	}
 
 	body, err := json.Marshal(users)
 	assert.NoError(t, err)
 
-	// Simulate To POST /user :
-	request := httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
-	request.Header.Set("Content-Type", "application/json")
+	// POST /users
+	req := httptest.NewRequest(http.MethodPost, "/users", bytes.NewBuffer(body))
+	req.Header.Set("Content-Type", "application/json")
 
-	responseRecorder := httptest.NewRecorder()
-	route.ServeHTTP(responseRecorder, request)
-	defer request.Body.Close()
+	resp := httptest.NewRecorder()
+	route.ServeHTTP(resp, req)
 
-	assert.Equal(t, http.StatusCreated, responseRecorder.Code, "Expected 201 Created")
-	assert.Contains(t, responseRecorder.Body.String(), "Abudalou")
+	assert.Equal(t, http.StatusCreated, resp.Code)
+	assert.Contains(t, resp.Body.String(), "Abudalou")
 
-	// Simulate To GET /users :
-	request = httptest.NewRequest(http.MethodGet, "/users", nil)
-	responseRecorder = httptest.NewRecorder()
-	route.ServeHTTP(responseRecorder, request)
-	defer request.Body.Close()
+	// GET /users
+	req = httptest.NewRequest(http.MethodGet, "/users", nil)
+	resp = httptest.NewRecorder()
+	route.ServeHTTP(resp, req)
 
-	assert.Equal(t, http.StatusOK, responseRecorder.Code, "Expected 200 OK")
-	assert.Contains(t, responseRecorder.Body.String(), "Abudalou")
+	assert.Equal(t, http.StatusOK, resp.Code)
+	assert.Contains(t, resp.Body.String(), "Abudalou")
 
 	mockService.AssertExpectations(t)
 }

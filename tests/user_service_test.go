@@ -5,36 +5,35 @@ import (
 	"time"
 
 	"backend-task/internal/user/models"
-	mocks "backend-task/internal/user/services/mocks"
+	mocks "backend-task/tests/mocks"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/mock"
 )
 
 func TestCreateUserService(t *testing.T) {
 
 	mockService := new(mocks.UserService)
 
+	// Use A Realistic DOB.
 	user := &models.User{
 		Name:        "Abudalou",
-		Email:       "Abudalou@test.com",
-		DateOfBirth: time.Date(2025, 1, 4, 0, 0, 0, 0, time.UTC),
+		Email:       "abudalou@test.com",
+		DateOfBirth: time.Date(2000, 1, 4, 0, 0, 0, 0, time.UTC),
 	}
 
 	dateString := user.DateOfBirth.Format("2006-01-02")
 
-	// Setup mock
-	mockService.On("CreateUser", mock.Anything, mock.Anything, mock.Anything, mock.Anything).
-		Return(&models.User{Name: "Abudalou", Email: "Abudalou@test.com", DateOfBirth: time.Date(2025, 1, 4, 0, 0, 0, 0, time.UTC)}, nil)
+	// Setup Mock Correctly With 3 Arguments.
+	mockService.On("CreateUser", user.Name, user.Email, dateString).
+		Return(user, nil)
 
-	// Call the method correctly
-	_, err := mockService.CreateUser(user.Name, user.Email, dateString)
+	// Call The Mocked Method.
+	result, err := mockService.CreateUser(user.Name, user.Email, dateString)
 
-	if err != nil {
-		t.Log("Error:", err.Error())
-	}
+	assert.NoError(t, err)
+	assert.Equal(t, user, result)
 
-	// Assert that the mock was called as expected
+	// Verify That Expectations Were Met.
 	mockService.AssertExpectations(t)
 }
 
@@ -43,7 +42,7 @@ func TestListUsersByFilterService(t *testing.T) {
 	mockService := new(mocks.UserService)
 
 	users := []models.User{
-		{Name: "Abudalou", Email: "Abudalou@test.com"},
+		{Name: "Abudalou", Email: "abudalou@test.com"},
 	}
 
 	mockService.On("ListUsersByFilter", "").Return(users, nil)

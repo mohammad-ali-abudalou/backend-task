@@ -1,12 +1,15 @@
-basePath: /
+basePath: /api/v1
 definitions:
   models.CreateUserReq:
     properties:
       date_of_birth:
+        example: "1990-01-01"
         type: string
       email:
+        example: john@example.com
         type: string
       name:
+        example: John Doe
         type: string
     required:
     - date_of_birth
@@ -16,8 +19,34 @@ definitions:
   models.UpdateUserReq:
     properties:
       email:
+        example: jane@example.com
         type: string
       name:
+        example: Jane Doe
+        type: string
+    type: object
+  models.User:
+    properties:
+      created_at:
+        type: string
+      date_of_birth:
+        type: string
+      email:
+        type: string
+      group:
+        type: string
+      id:
+        type: string
+      name:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  utils.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      message:
         type: string
     type: object
 host: localhost:8080
@@ -31,7 +60,10 @@ info:
 paths:
   /users:
     get:
-      description: List all users, optionally filtered by group (e.g. adult-1, senior-2).
+      consumes:
+      - application/json
+      description: Returns a list of users, optionally filtered by group using query
+        parameter (e.g. adult-1, senior-2).
       parameters:
       - description: Group name
         in: query
@@ -44,14 +76,12 @@ paths:
           description: OK
           schema:
             items:
-              additionalProperties: true
-              type: object
+              $ref: '#/definitions/models.User'
             type: array
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/utils.ErrorResponse'
       summary: List users
       tags:
       - users
@@ -76,24 +106,26 @@ paths:
           description: Created
           schema:
             items:
-              $ref: '#/definitions/models.CreateUserReq'
+              $ref: '#/definitions/models.User'
             type: array
         "400":
           description: Invalid request body
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/utils.ErrorResponse'
+        "409":
+          description: Email already exists
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/utils.ErrorResponse'
       summary: Create one or more users
       tags:
       - users
   /users/{id}:
     get:
-      description: Retrieve a user by their UUID.
+      description: Retrieve a user by their unique UUID.
       parameters:
       - description: User ID
         in: path
@@ -106,13 +138,19 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/models.User'
+        "400":
+          description: Invalid ID
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
         "404":
           description: User not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
       summary: Get user by ID
       tags:
       - users
@@ -138,18 +176,19 @@ paths:
         "200":
           description: OK
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/models.User'
         "400":
           description: Invalid request or ID
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/utils.ErrorResponse'
         "404":
           description: User not found
           schema:
-            additionalProperties: true
-            type: object
+            $ref: '#/definitions/utils.ErrorResponse'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/utils.ErrorResponse'
       summary: Update a user
       tags:
       - users

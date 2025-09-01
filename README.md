@@ -19,7 +19,7 @@ Implements a user management REST API with automatic, capacity-aware age-group a
 The application is deployed on an **AWS EC2 (Windows)** instance.  
 The database uses **AWS RDS (PostgreSQL)** with public access enabled.  
 
-- **Swagger API:** http://51.21.3.224:8080/swagger/index.html#/users/
+- **Swagger API:** http://51.21.3.224:8080/swagger/index.html#/
 - **RDS Connection Details:**  
   - Endpoint: `database-2.c1uuy8cm86e8.eu-north-1.rds.amazonaws.com`  
   - Port: `5432`  
@@ -30,7 +30,7 @@ You can connect and test the API directly using the above endpoint.
 
 ---
 
-## Run Locally (No Docker)
+## Run Locally (No AWS)
 
 1. Install and start **PostgreSQL** locally.
 2. Set environment variables:
@@ -48,11 +48,11 @@ go run ./cmd/app
 
 > **Note for Windows (PowerShell):**
 >
-> * Use `go run ./cmd/app` (not `go run ./cmd/app/main.go`) to ensure module imports resolve correctly.
+> * Use `go run ./cmd/app` to ensure module imports resolve correctly.
 > * Swagger docs are auto-generated via:
 >
 > ```powershell
-> swag init -g cmd/main.go
+> swag init -g cmd/app/main.go
 > ```
 
 ---
@@ -106,9 +106,21 @@ go run ./cmd/app
 
 → **200 OK**
 
+```json
+{
+  "id": "<uuid>",
+  "name": "Alice Doe",
+  "email": "alice.doe@example.com",
+  "date_of_birth": "1990-05-10T00:00:00Z",
+  "group": "adult-1",
+  "created_at": "...",
+  "updated_at": "..."
+}
+```
+
 ---
 
-### List Users (Optionally by Group)
+### List Users ( Optionally By Group )
 
 `GET /users?group=adult-1` → **200 OK**
 `GET /users` → List all users
@@ -121,7 +133,7 @@ go run ./cmd/app
 * 13 – 17 → `teen`
 * 18 – 64 → `adult`
 * 65+ → `senior`
-* Capacity per group: **3**. When full, the next numbered group is created (`adult-2`, `senior-3`, ... ).
+* Capacity per group: **3**. When full, the next numbered group is created (`adult-2`, `senior-3`, ...).
 
 ---
 
@@ -141,7 +153,7 @@ go run ./cmd/app
 go test ./...
 ```
 
-> Uses SQLite in-memory for testing.
+> Uses mocks for testing.
 
 ---
 
@@ -151,7 +163,7 @@ go test ./...
 
 * AWS Account with EC2 and RDS access
 * Installed Go runtime on EC2 instance
-* PostgreSQL RDS instance (with public access enabled)
+* PostgreSQL RDS instance ( with public access enabled )
 * Security groups allowing inbound traffic on ports `8080` (API) and `5432` (Postgres)
 
 ### Steps
@@ -170,42 +182,40 @@ go test ./...
 
 3. **Install Go and Git (on EC2):**
 
-   ```bash
-   choco install golang git -y   # Windows with Chocolatey
-   ```
+```bash
+choco install golang git -y   # Windows With Chocolatey
+```
 
 4. **Clone the Repository:**
 
-   ```bash
-   git clone https://github.com/mohammad-ali-abudalou/backend-task.git
-   cd backend-task
-   ```
+```bash
+git clone https://github.com/mohammad-ali-abudalou/backend-task.git
+cd backend-task
+```
 
 5. **Configure Environment Variables (example for PowerShell):**
 
-   ```powershell
-   $env:DB_DRIVER="postgres"
-   $env:DB_DSN="host=database-2.c1uuy8cm86e8.eu-north-1.rds.amazonaws.com user=postgres password=Database dbname=postgres port=5432 sslmode=require TimeZone=UTC"
-   ```
+```powershell
+$env:DB_DRIVER="postgres"
+$env:DB_DSN="host=database-2.c1uuy8cm86e8.eu-north-1.rds.amazonaws.com user=postgres password=Database dbname=postgres port=5432 sslmode=require TimeZone=UTC"
+```
 
 6. **Run the Application:**
 
-   ```powershell
-   go run ./cmd/app
-   ```
+```powershell
+go run ./cmd/app
+```
 
 7. **Verify Deployment:**
 
-   * API available at: `http://<EC2-PUBLIC-IP>:8080` 
-      - ex. http://51.21.3.224:8080/
-   * Swagger available at: `http://<EC2-PUBLIC-IP>:8080/swagger/index.html` 
-      - ex. http://51.21.3.224:8080/swagger/index.html#/users/
+   * API available at: `http://<EC2-PUBLIC-IP>:8080`
+     ex. http://51.21.3.224:8080/
+   * Swagger available at: `http://<EC2-PUBLIC-IP>:8080/swagger/index.html`
+     ex. http://51.21.3.224:8080/swagger/index.html#/users/
 
 ---
 
 ## Contact
-
-For any questions or clarifications regarding this project:
 
 **Mohammad Ali Abu-Dalou**
 

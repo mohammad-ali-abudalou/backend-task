@@ -1,7 +1,8 @@
 package models
 
+// Update User Req Represents The Payload To Update A User's Name Or Email.
+// Group Field Is Intentionally Omitted ( Read-Only ).
 type UpdateUserReq struct {
-	Name  *string `json:"name"`
-	Email *string `json:"email"`
-	// To Enforce Read-Only, The Group Is Purposefully Left Out.
+	Name  *string `json:"name,omitempty" example:"Jane Doe"`
+	Email *string `json:"email,omitempty" example:"jane@example.com"`
 }

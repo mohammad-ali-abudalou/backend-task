@@ -1,34 +1,36 @@
 package tests
 
 import (
-	context "context"
+	"context"
 	"testing"
 	"time"
 
 	"backend-task/internal/user/models"
-	repository "backend-task/internal/user/repository/mocks"
+	mocks "backend-task/tests/mocks"
+
+	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateAndGetUserRepository(t *testing.T) {
+func TestCreateNewUserWithMockRepo(t *testing.T) {
 
 	ctx := context.Background()
-	mockRepo := new(repository.UserRepository)
+	mockRepo := new(mocks.UserRepository)
 
+	// Use Realistic DOB In The Past.
 	user := &models.User{
 		Name:        "Abudalou",
-		Email:       "Abudalou@test.com",
-		DateOfBirth: time.Date(2025, 1, 4, 0, 0, 0, 0, time.UTC),
+		Email:       "abudalou@test.com",
+		DateOfBirth: time.Date(2000, 1, 4, 0, 0, 0, 0, time.UTC),
+		Group:       "adult-1",
 	}
 
-	// Setup the expected call on the mock
+	// Setup Expected Call.
 	mockRepo.On("CreateNewUser", ctx, user).Return(nil)
 
-	// Call the method
+	// Call the method.
 	err := mockRepo.CreateNewUser(ctx, user)
-	if err != nil {
-		t.Log("Error:", err.Error())
-	}
+	assert.NoError(t, err)
 
-	// Verify that expectations were met
+	// Verify That Expectations Were Met.
 	mockRepo.AssertExpectations(t)
 }

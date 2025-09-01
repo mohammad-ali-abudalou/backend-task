@@ -1,31 +1,37 @@
-# --- Build stage ---
-FROM golang:1.25 AS build
+# =========================
+# Stage 1: Build
+# =========================
+
+FROM golang:1.25 AS builder
+
 WORKDIR /app
 
-# Copy and download dependency files first
+# Copy Go Modules Manifests :
 COPY go.mod go.sum ./
+
+# Download Dependencies :
 RUN go mod download
 
-# Copy the whole project
+# Copy The Source Code :
 COPY . .
 
-# Build the Go binary
-RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false-o backend-task server ./cmd/app
+# Build The Go Binary  :
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -buildvcs=false -o backend-task ./cmd/app
 
-# Expose API port
-EXPOSE 8080
 
-# --- Runtime stage ---
+# =========================
+# Stage 2: Runtime
+# =========================
 
-# ============================
-# Stage 2: Run
-# ============================
 FROM alpine:3.19
 
 WORKDIR /root/
 
-# Expose API port
+# Copy The Binary From Builder Stage :
+COPY --from=builder /app/backend-task .
+
+# Expose The API Port :
 EXPOSE 8080
 
-# Run the app
+# Run The Application :
 CMD ["./backend-task"]

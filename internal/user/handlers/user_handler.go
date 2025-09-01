@@ -6,52 +6,58 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
-	models "backend-task/internal/user/models"
-	service "backend-task/internal/user/services"
+	"backend-task/internal/user/models"
+	services "backend-task/internal/user/services"
 	"backend-task/internal/utils"
 )
 
 type UserHandler struct {
-	Service service.UserService
+	Service services.UserService
 }
 
-func NewUserHandler(s service.UserService) *UserHandler {
+func NewUserHandler(s services.UserService) *UserHandler {
 
 	return &UserHandler{Service: s}
 }
 
+// CreateUser godoc
 // @Summary Create one or more users
 // @Description Creates new users and assigns them to groups automatically (up to 3 per group).
 // @Tags users
 // @Accept json
 // @Produce json
 // @Param users body []models.CreateUserReq true "User info array"
-// @Success 201 {array} models.CreateUserReq
-// @Failure 400 {object} map[string]interface{} "Invalid request body"
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 201 {array} models.User
+// @Failure 400 {object} utils.ErrorResponse "Invalid request body"
+// @Failure 409 {object} utils.ErrorResponse "Email already exists"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /users [post]
 func (userHandler *UserHandler) CreateUser(context *gin.Context) {
 
 	var bodies []models.CreateUserReq
 	if err := context.ShouldBindJSON(&bodies); err != nil {
 
-		context.JSON(http.StatusBadRequest, gin.H{"Code": utils.StatusBadRequest, "Error": utils.ErrInvalidRequestBody})
+		utils.RespondError(context, utils.ErrInvalidRequestBody)
 		return
 	}
 
+	var created []models.User
 	for _, body := range bodies {
 
-		_, err := userHandler.Service.CreateUser(body.Name, body.Email, body.DateOfBirth)
+		user, err := userHandler.Service.CreateUser(body.Name, body.Email, body.DateOfBirth)
 		if err != nil {
 
 			utils.RespondError(context, err)
 			return
 		}
+
+		created = append(created, *user)
 	}
 
-	context.JSON(http.StatusCreated, bodies)
+	context.JSON(http.StatusCreated, created)
 }
 
+// UpdateUser godoc
 // @Summary Update a user
 // @Description Update user name and/or email by ID (group cannot be updated manually).
 // @Tags users
@@ -59,73 +65,83 @@ func (userHandler *UserHandler) CreateUser(context *gin.Context) {
 // @Produce json
 // @Param id path string true "User ID"
 // @Param user body models.UpdateUserReq true "User info"
-// @Success 200 {object} map[string]interface{}
-// @Failure 400 {object} map[string]interface{} "Invalid request or ID"
-// @Failure 404 {object} map[string]interface{} "User not found"
+// @Success 200 {object} models.User
+// @Failure 400 {object} utils.ErrorResponse "Invalid request or ID"
+// @Failure 404 {object} utils.ErrorResponse "User not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /users/{id} [patch]
 func (userHandler *UserHandler) UpdateUser(context *gin.Context) {
 
 	userId := context.Param("id")
-	_, err := uuid.Parse(userId)
-	if err != nil {
+	if _, err := uuid.Parse(userId); err != nil {
 
-		context.JSON(http.StatusBadRequest, gin.H{"Code": utils.StatusBadRequest, "Error": utils.ErrInvalidId})
+		utils.RespondError(context, utils.ErrInvalidID)
 		return
 	}
 
-	_, err = userHandler.Service.GetUserById(userId)
-	if err != nil {
+	// Ensure User Exists :
+	if _, err := userHandler.Service.GetUserByID(userId); err != nil {
 
-		context.JSON(http.StatusNotFound, gin.H{"Code": utils.StatusNotFound, "Error": utils.ErrUserNotFound})
+		utils.RespondError(context, utils.ErrUserNotFound)
 		return
 	}
 
 	var body models.UpdateUserReq
 	if err := context.ShouldBindJSON(&body); err != nil {
 
-		context.JSON(http.StatusBadRequest, gin.H{"Code": http.StatusBadRequest, "Error": err.Error()}) // " Invalid Request Body "
+		utils.RespondError(context, utils.ErrInvalidRequestBody)
 		return
 	}
 
-	u, err := userHandler.Service.UpdateUser(userId, body.Name, body.Email)
+	user, err := userHandler.Service.UpdateUser(userId, body.Name, body.Email)
 	if err != nil {
 
 		utils.RespondError(context, err)
 		return
 	}
 
-	context.JSON(http.StatusOK, u)
+	context.JSON(http.StatusOK, user)
 }
 
+// GetUserByID godoc
 // @Summary Get user by ID
-// @Description Retrieve a user by their UUID.
+// @Description Retrieve a user by their unique UUID.
 // @Tags users
 // @Produce json
 // @Param id path string true "User ID"
-// @Success 200 {object} map[string]interface{}
-// @Failure 404 {object} map[string]interface{} "User not found"
+// @Success 200 {object} models.User
+// @Failure 400 {object} utils.ErrorResponse "Invalid ID"
+// @Failure 404 {object} utils.ErrorResponse "User not found"
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /users/{id} [get]
 func (userHandler *UserHandler) GetUserByID(context *gin.Context) {
 
 	userId := context.Param("id")
+	if _, err := uuid.Parse(userId); err != nil {
 
-	u, err := userHandler.Service.GetUserById(userId)
+		utils.RespondError(context, utils.ErrInvalidID)
+		return
+	}
+
+	user, err := userHandler.Service.GetUserByID(userId)
 	if err != nil {
 
 		utils.RespondError(context, err)
 		return
 	}
 
-	context.JSON(http.StatusOK, u)
+	context.JSON(http.StatusOK, user)
 }
 
+// QueryUsers godoc
 // @Summary List users
-// @Description List all users, optionally filtered by group (e.g. adult-1, senior-2).
+// @Description Returns a list of users, optionally filtered by group using query parameter (e.g. adult-1, senior-2).
 // @Tags users
+// @Accept json
 // @Produce json
 // @Param group query string false "Group name"
-// @Success 200 {array} map[string]interface{}
-// @Failure 500 {object} map[string]interface{} "Internal server error"
+// @Success 200 {array} models.User
+// @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /users [get]
 func (userHandler *UserHandler) QueryUsers(context *gin.Context) {
 

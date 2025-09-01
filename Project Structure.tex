@@ -1,0 +1,39 @@
+backend-task/
+│
+├── cmd/
+│   └── app/
+│       └── main.go          # Entry point
+│
+├── internal/
+│   ├── router/
+│   │   └── router.go        # Gin router setup
+│   │
+│   ├── user/
+│   │   ├── handlers/
+│   │   │   └── user_handler.go
+│   │   ├── models/
+│   │   │   ├── user.go
+│   │   │   ├── create_user_req.go
+│   │   │   └── update_user_req.go
+│   │   ├── repository/
+│   │   │   └── user_repository.go
+│   │   └── service/
+│   │       └── user_service.go
+│   │
+│   └── utils/
+│       ├── constants.go
+│       ├── errors.go
+│       ├── logger.go
+│       └── validator.go
+│
+├── tests/
+│   ├── user_service_test.go
+│   ├── user_repository_test.go
+│   └── user_handler_test.go
+│
+├── .env
+├── .gitignore
+├── Dockerfile
+├── docker-compose.yml
+├── go.mod
+└── go.sum

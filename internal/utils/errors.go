@@ -2,58 +2,58 @@ package utils
 
 import (
 	"errors"
-	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gorm.io/gorm"
 )
 
-// Common API Error Messages :
+// ---------------- Predefined Error Messages ----------------
 var (
-	ErrNoEnvFileFound                = errors.New("No .env File Found")
-	ErrFailedConnectDatabase         = errors.New("Failed To Connect To Database")
-	ErrDatabaseConnectedSuccessfully = errors.New("Database Connected Successfully")
-	ErrUnsupportedDBDriver           = errors.New("Unsupported DB Driver")
-	ErrMigrationFailed               = errors.New("Migration Failed")
-	ErrInvalidRequestBody            = errors.New("Invalid Request Body")
-	ErrInvalidId                     = errors.New("Invalid Id")
-	ErrUserNotFound                  = errors.New("User Not Found")
-	ErrNameIsRequired                = errors.New("Name Is Required")
-	ErrInvalidEmailFormat            = errors.New("Invalid Email Format")
-	ErrDateOfBirthFormat             = errors.New("date_of_birth Must Be YYYY-MM-DD")
-	ErrEmailAlreadyExists            = errors.New("Email Already Exists")
-	ErrNameCanNotEmpty               = errors.New("Name Cannot Be Empty")
-	ErrRecordNotFound                = errors.New("Record Not Found")
-	ErrInternalError                 = errors.New("Internal Server Error")
-	ErrDateOfBirthCanNotInFuture     = errors.New("date_of_birth Cannot Be In The Future")
+	ErrNoEnvFileFound                     = errors.New("no .env file found, relying on system environment variables")
+	ErrFailedConnectDatabase              = errors.New("failed to connect to database")
+	ErrDatabaseConnected                  = errors.New("database connected successfully")
+	ErrUnsupportedDBDriver                = errors.New("unsupported db driver")
+	ErrMigrationFailed                    = errors.New("migration failed")
+	ErrDatabaseSchemaMigratedSuccessfully = errors.New("database schema migrated successfully")
+	ErrInvalidRequestBody                 = errors.New("invalid request body")
+	ErrInvalidID                          = errors.New("invalid id")
+	ErrUserNotFound                       = errors.New("user not found")
+	ErrNameIsRequired                     = errors.New("name is required")
+	ErrInvalidEmailFormat                 = errors.New("invalid email format")
+	ErrDateOfBirthFormat                  = errors.New("date_of_birth must be yyyy-mm-dd")
+	ErrEmailAlreadyExists                 = errors.New("email already exists")
+	ErrNameCannotBeEmpty                  = errors.New("name cannot be empty")
+	ErrRecordNotFound                     = errors.New("record not found")
+	ErrInternalError                      = errors.New("internal server error")
+	ErrDateOfBirthCannotBeFuture          = errors.New("date_of_birth cannot be in the future")
+	ErrFailedToFindGroup                  = errors.New("failed to find group")
+	ErrFailedToGetMaxGroupIdx             = errors.New("failed to get max group index")
+	ErrFailedToCreateNewGroup             = errors.New("failed to create new group")
 )
 
+// ---------------- APIError Type ----------------
 type APIError struct {
-	Code    int
-	Message string
+	Code    int    `json:"code"`
+	Message string `json:"error"`
 }
 
-// Handle Issue In Custom APIs :
-type CustomErrors interface {
-	Error() string
+func (e APIError) Error() string {
+	return e.Message
 }
 
-func (apiError APIError) Error() string {
-	return apiError.Message
+// ---------------- Predefined Constructors ----------------
+func NewBadRequest(msg string) error {
+	return APIError{Code: StatusBadRequest, Message: msg}
 }
 
-// Predefined Constructors For API Errors.
-func NewBadRequest(message string) error {
-
-	return APIError{Code: StatusBadRequest, Message: message}
+func NewNotFound(msg string) error {
+	return APIError{Code: StatusNotFound, Message: msg}
 }
 
-func NewNotFound(message string) error {
-
-	return APIError{Code: StatusNotFound, Message: message}
+func NewInternalError(msg string) error {
+	return APIError{Code: StatusInternalServerError, Message: msg}
 }
 
-// React Depending On The Type Of Issue, Issue Provides The Relevant HTTP Response.
+// ---------------- Gin Error Responder ----------------
 func RespondError(context *gin.Context, err error) {
 
 	if err == nil {
@@ -61,19 +61,42 @@ func RespondError(context *gin.Context, err error) {
 		return
 	}
 
-	if customErrors, ok := err.(CustomErrors); ok {
+	var apiErr APIError
 
-		context.JSON(http.StatusBadRequest, gin.H{"Code": StatusBadRequest, "Error": customErrors.Error()})
+	// Use APIError If Possible
+	if errors.As(err, &apiErr) {
+
+		context.JSON(apiErr.Code, apiErr)
 		return
 	}
 
-	// Handle The "GORM Record Not Found" Issue :
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	// Handle GORM Record Not Found
+	if errors.Is(err, ErrRecordNotFound) {
 
-		context.JSON(http.StatusNotFound, gin.H{"Code": StatusNotFound, "Error": ErrRecordNotFound})
+		context.JSON(StatusNotFound, APIError{Code: StatusNotFound, Message: ErrRecordNotFound.Error()})
 		return
 	}
 
-	// " Internal Server Error " is the default.
-	context.JSON(http.StatusInternalServerError, gin.H{"Code": StatusInternalServerError, "Error": ErrInternalError})
+	// Handle GORM User Not Found
+	if errors.Is(err, ErrUserNotFound) {
+
+		context.JSON(StatusNotFound, APIError{Code: StatusNotFound, Message: ErrUserNotFound.Error()})
+		return
+	}
+
+	// Handle GORM Invalid ID
+	if errors.Is(err, ErrInvalidID) {
+
+		context.JSON(StatusBadRequest, APIError{Code: StatusNotFound, Message: ErrInvalidID.Error()})
+		return
+	}
+
+	// Default Internal Server Error
+	context.JSON(StatusInternalServerError, APIError{Code: StatusInternalServerError, Message: ErrInternalError.Error()})
+}
+
+// ---------------- Swagger-Compatible Error Response ----------------
+type ErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }

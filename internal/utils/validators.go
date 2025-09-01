@@ -8,17 +8,20 @@ import (
 
 var emailRx = regexp.MustCompile(`^[A-Za-z0-9._%+\-]+@[A-Za-z0-9.\-]+\.[A-Za-z]{2,}$`)
 
+// ValidateEmail Checks If The Email Has A Valid Format :
 func ValidateEmail(email string) bool {
 
 	return emailRx.MatchString(email)
 }
 
+// CalculateAge Returns The Age In Years Based On Date Of Birth :
 func CalculateAge(dob time.Time) int {
 
-	timeNow := time.Now()
-	age := timeNow.Year() - dob.Year()
+	now := time.Now()
+	age := now.Year() - dob.Year()
 
-	if timeNow.Month() < dob.Month() || (timeNow.Month() == dob.Month() && timeNow.Day() < dob.Day()) {
+	// Adjust If Birthday Hasn't Occurred Yet This Year.
+	if now.Month() < dob.Month() || (now.Month() == dob.Month() && now.Day() < dob.Day()) {
 
 		age--
 	}
@@ -26,11 +29,12 @@ func CalculateAge(dob time.Time) int {
 	return age
 }
 
-func ValidateDateOfBirth(dateOfBirth time.Time) error {
+// ValidateDateOfBirth Ensures The Date Is Not In The Future :
+func ValidateDateOfBirth(dob time.Time) error {
 
-	if dateOfBirth.After(time.Now()) {
+	if dob.After(time.Now()) {
 
-		return errors.New(ErrDateOfBirthCanNotInFuture.Error())
+		return errors.New(ErrDateOfBirthCannotBeFuture.Error())
 	}
 
 	return nil

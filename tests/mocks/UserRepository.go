@@ -16,9 +16,9 @@ type UserRepository struct {
 	mock.Mock
 }
 
-// CreateNewUser provides a mock function with given fields: ctx, u
-func (_m *UserRepository) CreateNewUser(ctx context.Context, u *models.User) error {
-	ret := _m.Called(ctx, u)
+// CreateNewUser provides a mock function with given fields: _a0, user
+func (_m *UserRepository) CreateNewUser(_a0 context.Context, user *models.User) error {
+	ret := _m.Called(_a0, user)
 
 	if len(ret) == 0 {
 		panic("no return value specified for CreateNewUser")
@@ -26,7 +26,7 @@ func (_m *UserRepository) CreateNewUser(ctx context.Context, u *models.User) err
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *models.User) error); ok {
-		r0 = rf(ctx, u)
+		r0 = rf(_a0, user)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -34,9 +34,9 @@ func (_m *UserRepository) CreateNewUser(ctx context.Context, u *models.User) err
 	return r0
 }
 
-// GetUserByID provides a mock function with given fields: ctx, id
-func (_m *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*models.User, error) {
-	ret := _m.Called(ctx, id)
+// GetUserByID provides a mock function with given fields: _a0, userID
+func (_m *UserRepository) GetUserByID(_a0 context.Context, userID uuid.UUID) (*models.User, error) {
+	ret := _m.Called(_a0, userID)
 
 	if len(ret) == 0 {
 		panic("no return value specified for GetUserByID")
@@ -45,10 +45,10 @@ func (_m *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*model
 	var r0 *models.User
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) (*models.User, error)); ok {
-		return rf(ctx, id)
+		return rf(_a0, userID)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, uuid.UUID) *models.User); ok {
-		r0 = rf(ctx, id)
+		r0 = rf(_a0, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*models.User)
@@ -56,7 +56,7 @@ func (_m *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*model
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, uuid.UUID) error); ok {
-		r1 = rf(ctx, id)
+		r1 = rf(_a0, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -64,9 +64,9 @@ func (_m *UserRepository) GetUserByID(ctx context.Context, id uuid.UUID) (*model
 	return r0, r1
 }
 
-// IsEmailExists provides a mock function with given fields: ctx, email
-func (_m *UserRepository) IsEmailExists(ctx context.Context, email string) (bool, error) {
-	ret := _m.Called(ctx, email)
+// IsEmailExists provides a mock function with given fields: _a0, email
+func (_m *UserRepository) IsEmailExists(_a0 context.Context, email string) (bool, error) {
+	ret := _m.Called(_a0, email)
 
 	if len(ret) == 0 {
 		panic("no return value specified for IsEmailExists")
@@ -75,16 +75,16 @@ func (_m *UserRepository) IsEmailExists(ctx context.Context, email string) (bool
 	var r0 bool
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) (bool, error)); ok {
-		return rf(ctx, email)
+		return rf(_a0, email)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) bool); ok {
-		r0 = rf(ctx, email)
+		r0 = rf(_a0, email)
 	} else {
 		r0 = ret.Get(0).(bool)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, email)
+		r1 = rf(_a0, email)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -92,9 +92,9 @@ func (_m *UserRepository) IsEmailExists(ctx context.Context, email string) (bool
 	return r0, r1
 }
 
-// ListUsers provides a mock function with given fields: ctx, group
-func (_m *UserRepository) ListUsers(ctx context.Context, group string) ([]models.User, error) {
-	ret := _m.Called(ctx, group)
+// ListUsers provides a mock function with given fields: _a0, group
+func (_m *UserRepository) ListUsers(_a0 context.Context, group string) ([]models.User, error) {
+	ret := _m.Called(_a0, group)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListUsers")
@@ -103,10 +103,10 @@ func (_m *UserRepository) ListUsers(ctx context.Context, group string) ([]models
 	var r0 []models.User
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, string) ([]models.User, error)); ok {
-		return rf(ctx, group)
+		return rf(_a0, group)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, string) []models.User); ok {
-		r0 = rf(ctx, group)
+		r0 = rf(_a0, group)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]models.User)
@@ -114,7 +114,7 @@ func (_m *UserRepository) ListUsers(ctx context.Context, group string) ([]models
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, group)
+		r1 = rf(_a0, group)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -122,14 +122,14 @@ func (_m *UserRepository) ListUsers(ctx context.Context, group string) ([]models
 	return r0, r1
 }
 
-// UpdateUser provides a mock function with given fields: ctx, u, fields
-func (_m *UserRepository) UpdateUser(ctx context.Context, u *models.User, fields ...string) error {
+// UpdateUser provides a mock function with given fields: _a0, user, fields
+func (_m *UserRepository) UpdateUser(_a0 context.Context, user *models.User, fields ...string) error {
 	_va := make([]interface{}, len(fields))
 	for _i := range fields {
 		_va[_i] = fields[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, ctx, u)
+	_ca = append(_ca, _a0, user)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
@@ -139,7 +139,7 @@ func (_m *UserRepository) UpdateUser(ctx context.Context, u *models.User, fields
 
 	var r0 error
 	if rf, ok := ret.Get(0).(func(context.Context, *models.User, ...string) error); ok {
-		r0 = rf(ctx, u, fields...)
+		r0 = rf(_a0, user, fields...)
 	} else {
 		r0 = ret.Error(0)
 	}
