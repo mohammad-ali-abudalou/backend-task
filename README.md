@@ -1,4 +1,4 @@
-````markdown
+
 # Backend Task (Go + Gin + GORM + Postgres)
 
 Implements a **user management REST API** with automatic, capacity-aware **age-group assignment**.
@@ -43,6 +43,7 @@ You can connect and test the API directly using the above endpoint.
 ## Run Locally ( No AWS )
 
 1. Install **PostgreSQL** locally and ensure it’s running.
+
 2. Export environment variables:
 
 ```bash
@@ -280,3 +281,5 @@ go run ./cmd/app
 * Mobile: +962790132315
 * Email: abudalou.mohammad@gmail.com
 * LinkedIn: https://www.linkedin.com/in/mohammad-ali-abudalou/
+
+---
