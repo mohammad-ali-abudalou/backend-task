@@ -222,5 +222,3 @@ go run ./cmd/app
 * Mobile: +962790132315
 * Email: abudalou.mohammad@gmail.com
 * LinkedIn: https://www.linkedin.com/in/mohammad-ali-abudalou/
-
-```
