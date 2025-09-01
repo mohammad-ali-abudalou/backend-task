@@ -26,7 +26,7 @@ The application is currently deployed on :
 - The application is deployed on an **AWS EC2 ( Windows )** instance.
 - The database uses **AWS RDS (PostgreSQL)** with public access enabled.
 
-**Live Swagger API Docs - Swagger API:**:  
+**Live Swagger API Docs - Swagger API:**
 http://51.21.3.224:8080/swagger/index.html#/
 
 **Database Connection Details ( AWS RDS )**:  
@@ -208,7 +208,7 @@ Run unit tests with :
 go test ./...
 ```
 
-> Mocks are used for services and repositories..
+> Mocks are used for services and repositories.
 
 ---
 
@@ -239,7 +239,7 @@ go test ./...
    * Open port `8080` in the Security Group.
    * SSH/RDP into the instance.
 
-3. **Install Go and Git ( on EC2 ) :**
+3. **Install Go and Git ( On EC2 ) :**
 
 ```bash
 choco install golang git -y   # Windows With Chocolatey
@@ -252,7 +252,7 @@ git clone https://github.com/mohammad-ali-abudalou/backend-task.git
 cd backend-task
 ```
 
-5. **Configure Environment Variables (example for PowerShell):**
+5. **Configure Environment Variables ( Example For PowerShell):**
 
 ```powershell
 $env:DB_DRIVER="postgres"
