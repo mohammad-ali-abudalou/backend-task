@@ -2,22 +2,47 @@ backend-task/
 │
 ├── cmd/
 │   └── app/
-│       └── main.go          # Entry point
+│       └── main.go 
+│
+├── configs/
+│
+├── docs/
+│     └── docs.go 
+│     └── swagger.json 
+│     └── swagger.yaml 
 │
 ├── internal/
+│   │ 
+│   └── app/
+│   │   └── container.go 
+│   │ 
+│   └── config/
+│   │   └── env.go 
+│   │ 
+│   └── db/
+│   │   └── db.go 
+│   │ 
 │   ├── router/
-│   │   └── router.go        # Gin router setup
+│   │   └── router.go    
 │   │
 │   ├── user/
+│   │   │ 
 │   │   ├── handlers/
 │   │   │   └── user_handler.go
+│   │   │   
 │   │   ├── models/
 │   │   │   ├── user.go
+│   │   │   ├── group.go
 │   │   │   ├── create_user_req.go
 │   │   │   └── update_user_req.go
+│   │   │   
 │   │   ├── repository/
 │   │   │   └── user_repository.go
+│   │   │   
 │   │   └── service/
+│   │       └── interface/
+│   │       │     └── user_service_interface.go
+│   │       │
 │   │       └── user_service.go
 │   │
 │   └── utils/
@@ -25,8 +50,18 @@ backend-task/
 │       ├── errors.go
 │       ├── logger.go
 │       └── validator.go
+│ 
+├── pkg/
 │
 ├── tests/
+|   |
+|   ├── mock/
+│   │    └── GroupRepository.go
+│   │    └── UserRepository.go
+│   │    └── UserService.go
+|   |
+│   ├── .env.test
+│   ├── main_test.go
 │   ├── user_service_test.go
 │   ├── user_repository_test.go
 │   └── user_handler_test.go
@@ -37,3 +72,4 @@ backend-task/
 ├── docker-compose.yml
 ├── go.mod
 └── go.sum
+└── README.md
