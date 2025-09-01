@@ -209,9 +209,9 @@ go run ./cmd/app
 7. **Verify Deployment:**
 
    * API available at: `http://<EC2-PUBLIC-IP>:8080`
-     ex. http://51.21.3.224:8080/
+      ex. http://51.21.3.224:8080/
    * Swagger available at: `http://<EC2-PUBLIC-IP>:8080/swagger/index.html`
-     ex. http://51.21.3.224:8080/swagger/index.html#/users/
+      ex. http://51.21.3.224:8080/swagger/index.html#/users/
 
 ---
 
