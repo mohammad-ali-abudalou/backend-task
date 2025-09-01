@@ -30,30 +30,30 @@ func NewUserRepository(db *gorm.DB) UserRepository {
 	return &UserRepositoryDB{gormDB: db}
 }
 
-func (UserRepositoryDB *UserRepositoryDB) CreateNewUser(context context.Context, user *models.User) error {
+func (userRepositoryDB *UserRepositoryDB) CreateNewUser(context context.Context, user *models.User) error {
 
-	return UserRepositoryDB.gormDB.WithContext(context).Create(user).Error
+	return userRepositoryDB.gormDB.WithContext(context).Create(user).Error
 }
 
-func (UserRepositoryDB *UserRepositoryDB) GetUserByID(context context.Context, userID uuid.UUID) (*models.User, error) {
+func (userRepositoryDB *UserRepositoryDB) GetUserByID(context context.Context, userID uuid.UUID) (*models.User, error) {
 
 	var user models.User
-	if err := UserRepositoryDB.gormDB.WithContext(context).First(&user, "id = ?", userID).Error; err != nil {
+	if err := userRepositoryDB.gormDB.WithContext(context).First(&user, "id = ?", userID).Error; err != nil {
 
 		return nil, fmt.Errorf("user not found: %w", err)
 	}
 	return &user, nil
 }
 
-func (UserRepositoryDB *UserRepositoryDB) UpdateUser(context context.Context, user *models.User, fields ...string) error {
+func (userRepositoryDB *UserRepositoryDB) UpdateUser(context context.Context, user *models.User, fields ...string) error {
 
-	return UserRepositoryDB.gormDB.WithContext(context).Model(user).Select(fields).Updates(user).Error
+	return userRepositoryDB.gormDB.WithContext(context).Model(user).Select(fields).Updates(user).Error
 }
 
-func (UserRepositoryDB *UserRepositoryDB) ListUsers(context context.Context, group string) ([]models.User, error) {
+func (userRepositoryDB *UserRepositoryDB) ListUsers(context context.Context, group string) ([]models.User, error) {
 
 	var users []models.User
-	gormDB := UserRepositoryDB.gormDB.WithContext(context).Order("created_at asc")
+	gormDB := userRepositoryDB.gormDB.WithContext(context).Order("created_at asc")
 	if group != "" {
 
 		gormDB = gormDB.Where("\"group\" = ?", group)
@@ -67,10 +67,10 @@ func (UserRepositoryDB *UserRepositoryDB) ListUsers(context context.Context, gro
 	return users, nil
 }
 
-func (UserRepositoryDB *UserRepositoryDB) IsEmailExists(context context.Context, email string) (bool, error) {
+func (userRepositoryDB *UserRepositoryDB) IsEmailExists(context context.Context, email string) (bool, error) {
 
 	var count int64
-	if err := UserRepositoryDB.gormDB.WithContext(context).Model(&models.User{}).Where("email = ?", email).Count(&count).Error; err != nil {
+	if err := userRepositoryDB.gormDB.WithContext(context).Model(&models.User{}).Where("email = ?", email).Count(&count).Error; err != nil {
 
 		return false, fmt.Errorf("failed to check email existence: %w", err)
 	}

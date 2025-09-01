@@ -7,15 +7,35 @@ import (
 	"gorm.io/gorm"
 )
 
-// User Is The Main User Model :
+// User Represents The Main User Model.
+//
+// @Description User Entity That Is Stored In The Database.
 type User struct {
-	ID          uuid.UUID `json:"id" gorm:"type:uuid;primaryKey"`
-	Name        string    `json:"name" gorm:"not null;size:255"`
-	Email       string    `json:"email" gorm:"not null;uniqueIndex;size:320"`
-	DateOfBirth time.Time `json:"date_of_birth" gorm:"type:date;not null"`
-	Group       string    `json:"group" gorm:"not null;index;size:64"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
+
+	// User Unique Identifier ( UUID ).
+	// @Required
+	ID uuid.UUID `json:"id" example:"550e8400-e29b-41d4-a716-446655440000" gorm:"type:uuid;primaryKey"`
+
+	// Full Name Of The User.
+	// @Required
+	Name string `json:"name" example:"John Doe" gorm:"not null;size:255" binding:"required"`
+
+	// Email Address ( Unique, Valid format ).
+	// @Required
+	Email string `json:"email" example:"john.doe@example.com" gorm:"not null;uniqueIndex;size:320" binding:"required,email"`
+
+	// Date Of Birth In YYYY-MM-DD Format ( Must Be In The Past ).
+	// @Required
+	DateOfBirth time.Time `json:"date_of_birth" example:"1990-05-15" gorm:"type:date;not null" binding:"required"`
+
+	// Group Assignment ( Computed, Read-Only ).
+	Group string `json:"group" example:"adult-1" gorm:"not null;index;size:64" readonly:"true"`
+
+	// Timestamp When The Record Was Created.
+	CreatedAt time.Time `json:"created_at" example:"2025-09-01T12:00:00Z"`
+
+	// Timestamp When The Record Was Last Updated.
+	UpdatedAt time.Time `json:"updated_at" example:"2025-09-01T12:30:00Z"`
 }
 
 // Before Create Ensures UUID Is Set Automatically :

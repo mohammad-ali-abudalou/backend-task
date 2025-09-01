@@ -26,7 +26,7 @@ func NewUserHandler(s services.UserService) *UserHandler {
 // @Accept json
 // @Produce json
 // @Param users body []models.CreateUserReq true "User info array"
-// @Success 200 {array} models.User
+// @Success 201 {array} models.User
 // @Failure 400 {object} utils.ErrorResponse "Invalid request or email already exists"
 // @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /users [post]
@@ -52,7 +52,7 @@ func (userHandler *UserHandler) CreateUser(context *gin.Context) {
 		created = append(created, *user)
 	}
 
-	context.JSON(constants.StatusOK, created)
+	context.JSON(constants.StatusCreated, created)
 }
 
 // UpdateUser godoc
@@ -67,7 +67,7 @@ func (userHandler *UserHandler) CreateUser(context *gin.Context) {
 // @Failure 400 {object} utils.ErrorResponse "Invalid request or invalid ID or email already exists"
 // @Failure 404 {object} utils.ErrorResponse "User not found"
 // @Failure 500 {object} utils.ErrorResponse "Internal server error"
-// @Router /users/{id} [patch]
+// @Router /users/{id} [put]
 func (userHandler *UserHandler) UpdateUser(context *gin.Context) {
 
 	userId := context.Param("id")
@@ -132,8 +132,8 @@ func (userHandler *UserHandler) GetUserByID(context *gin.Context) {
 }
 
 // QueryUsers godoc
-// @Summary List of all users
-// @Description Returns a list of users, optionally filtered by group using query parameter (e.g., adult-1, senior-2)
+// @Summary Search users by group / List all users
+// @Description Returns a list of users, optionally filtered by group using query parameter (e.g., adult-1, senior-2).
 // @Tags users
 // @Accept json
 // @Produce json

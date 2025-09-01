@@ -35,7 +35,7 @@ func SetupRouters(db *gorm.DB) *Server {
 	{
 		api.POST("/users", userHandler.CreateUser)
 		api.GET("/users/:id", userHandler.GetUserByID)
-		api.PATCH("/users/:id", userHandler.UpdateUser)
+		api.PUT("/users/:id", userHandler.UpdateUser)
 		api.GET("/users", userHandler.QueryUsers) // Supports Group Filter.
 	}
 
@@ -56,7 +56,7 @@ func SetupRoutersWithService(userService services.UserService) *gin.Engine {
 
 	router.POST("/users", handler.CreateUser)
 	router.GET("/users/:id", handler.GetUserByID)
-	router.PATCH("/users/:id", handler.UpdateUser)
+	router.PUT("/users/:id", handler.UpdateUser)
 	router.GET("/users", handler.QueryUsers)
 
 	return router

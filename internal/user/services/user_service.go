@@ -42,18 +42,18 @@ func (userService *userService) CreateUser(name, email, dob string) (*models.Use
 
 	if name == "" {
 
-		return nil, utils.NewBadRequest(utils.ErrNameIsRequired.Error())
+		return nil, utils.NewBadRequest(utils.ErrNameIsRequired)
 	}
 
 	if !utils.ValidateEmail(email) {
 
-		return nil, utils.NewBadRequest(utils.ErrInvalidEmailFormat.Error())
+		return nil, utils.NewBadRequest(utils.ErrInvalidEmailFormat)
 	}
 
 	birth, err := time.Parse("2006-01-02", dob)
 	if err != nil {
 
-		return nil, utils.NewBadRequest(utils.ErrDateOfBirthFormat.Error())
+		return nil, utils.NewBadRequest(utils.ErrDateOfBirthFormat)
 	}
 
 	if err := utils.ValidateDateOfBirth(birth); err != nil {
@@ -70,16 +70,17 @@ func (userService *userService) CreateUser(name, email, dob string) (*models.Use
 
 	if exists {
 
-		return nil, utils.NewBadRequest(utils.ErrEmailAlreadyExists.Error())
+		return nil, utils.NewBadRequest(utils.ErrEmailAlreadyExists)
 	}
 
 	baseGroup := ageToBaseGroup(birth)
 	var createdUser *models.User
 
-	// Transaction For Safe Group Assignment :
-	err = userService.db.Transaction(func(tx *gorm.DB) error {
+	// Transaction For Safe Group Assignment,
+	// Wrap Everything In A Transaction :
+	err = userService.db.Transaction(func(gormDB *gorm.DB) error {
 
-		group, err := userService.groups.FindAllocatableGroupTx(tx, baseGroup)
+		group, err := userService.groups.FindAllocatableGroupTx(gormDB, baseGroup)
 		if err != nil {
 
 			return err
@@ -98,7 +99,7 @@ func (userService *userService) CreateUser(name, email, dob string) (*models.Use
 			return err
 		}
 
-		if err := userService.groups.IncrementGroupCountTx(tx, group.Name); err != nil {
+		if err := userService.groups.IncrementGroupCountTx(gormDB, group.Name); err != nil {
 
 			return err
 		}
@@ -122,7 +123,7 @@ func (userService *userService) GetUserByID(id string) (*models.User, error) {
 	uid, err := uuid.Parse(id)
 	if err != nil {
 
-		return nil, utils.NewBadRequest(utils.ErrUserNotFound.Error())
+		return nil, utils.NewBadRequest(utils.ErrUserNotFound)
 	}
 
 	user, err := userService.users.GetUserByID(context.Background(), uid)
@@ -130,7 +131,7 @@ func (userService *userService) GetUserByID(id string) (*models.User, error) {
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 
-			return nil, utils.NewBadRequest(utils.ErrUserNotFound.Error())
+			return nil, utils.NewBadRequest(utils.ErrUserNotFound)
 		}
 
 		return nil, err
@@ -146,7 +147,7 @@ func (userService *userService) UpdateUser(id string, name, email *string) (*mod
 	uid, err := uuid.Parse(id)
 	if err != nil {
 
-		return nil, utils.NewBadRequest(utils.ErrUserNotFound.Error())
+		return nil, utils.NewBadRequest(utils.ErrUserNotFound)
 	}
 
 	user, err := userService.users.GetUserByID(context.Background(), uid)
@@ -154,7 +155,7 @@ func (userService *userService) UpdateUser(id string, name, email *string) (*mod
 
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 
-			return nil, utils.NewBadRequest(utils.ErrUserNotFound.Error())
+			return nil, utils.NewBadRequest(utils.ErrUserNotFound)
 		}
 
 		return nil, err
@@ -166,7 +167,7 @@ func (userService *userService) UpdateUser(id string, name, email *string) (*mod
 		newName := strings.TrimSpace(*name)
 		if newName == "" {
 
-			return nil, utils.NewBadRequest(utils.ErrNameCannotBeEmpty.Error())
+			return nil, utils.NewBadRequest(utils.ErrNameCannotBeEmpty)
 		}
 
 		user.Name = newName
@@ -178,7 +179,7 @@ func (userService *userService) UpdateUser(id string, name, email *string) (*mod
 		newEmail := strings.ToLower(strings.TrimSpace(*email))
 		if !utils.ValidateEmail(newEmail) {
 
-			return nil, utils.NewBadRequest(utils.ErrInvalidEmailFormat.Error())
+			return nil, utils.NewBadRequest(utils.ErrInvalidEmailFormat)
 		}
 
 		if newEmail != user.Email {
@@ -191,7 +192,7 @@ func (userService *userService) UpdateUser(id string, name, email *string) (*mod
 
 			if exists {
 
-				return nil, utils.NewBadRequest(utils.ErrEmailAlreadyExists.Error())
+				return nil, utils.NewBadRequest(utils.ErrEmailAlreadyExists)
 			}
 
 			user.Email = newEmail

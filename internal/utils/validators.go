@@ -1,7 +1,6 @@
 package utils
 
 import (
-	"errors"
 	"regexp"
 	"time"
 )
@@ -34,7 +33,7 @@ func ValidateDateOfBirth(dob time.Time) error {
 
 	if dob.After(time.Now()) {
 
-		return errors.New(ErrDateOfBirthCannotBeFuture.Error())
+		return ErrDateOfBirthCannotBeFuture
 	}
 
 	return nil

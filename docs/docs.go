@@ -20,7 +20,7 @@ const docTemplate = `{
     "paths": {
         "/users": {
             "get": {
-                "description": "Returns a list of users, optionally filtered by group using query parameter (e.g., adult-1, senior-2)",
+                "description": "Returns a list of users, optionally filtered by group using query parameter (e.g., adult-1, senior-2).",
                 "consumes": [
                     "application/json"
                 ],
@@ -30,7 +30,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "List of all users",
+                "summary": "Search users by group / List all users",
                 "parameters": [
                     {
                         "type": "string",
@@ -84,8 +84,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "200": {
-                        "description": "OK",
+                    "201": {
+                        "description": "Created",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -154,7 +154,7 @@ const docTemplate = `{
                     }
                 }
             },
-            "patch": {
+            "put": {
                 "description": "Update user name and/or email by ID ( group cannot be updated manually ).",
                 "consumes": [
                     "application/json"
@@ -250,28 +250,49 @@ const docTemplate = `{
             }
         },
         "models.User": {
+            "description": "User Entity That Is Stored In The Database.",
             "type": "object",
+            "required": [
+                "date_of_birth",
+                "email",
+                "name"
+            ],
             "properties": {
                 "created_at": {
-                    "type": "string"
+                    "description": "Timestamp When The Record Was Created.",
+                    "type": "string",
+                    "example": "2025-09-01T12:00:00Z"
                 },
                 "date_of_birth": {
-                    "type": "string"
+                    "description": "Date Of Birth In YYYY-MM-DD Format ( Must Be In The Past ).\n@Required",
+                    "type": "string",
+                    "example": "1990-05-15"
                 },
                 "email": {
-                    "type": "string"
+                    "description": "Email Address ( Unique, Valid format ).\n@Required",
+                    "type": "string",
+                    "example": "john.doe@example.com"
                 },
                 "group": {
-                    "type": "string"
+                    "description": "Group Assignment ( Computed, Read-Only ).",
+                    "type": "string",
+                    "readOnly": true,
+                    "example": "adult-1"
                 },
                 "id": {
-                    "type": "string"
+                    "description": "User Unique Identifier ( UUID ).\n@Required",
+                    "type": "string",
+                    "example": "550e8400-e29b-41d4-a716-446655440000"
                 },
                 "name": {
-                    "type": "string"
+                    "description": "Full Name Of The User.\n@Required",
+                    "type": "string",
+                    "example": "John Doe"
                 },
                 "updated_at": {
-                    "type": "string"
+                    "description": "Timestamp When The Record Was Last Updated.",
+                    "type": "string",
+                    "example": "2025-09-01T12:30:00Z"
                 }
             }
         },
