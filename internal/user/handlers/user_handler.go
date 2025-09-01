@@ -1,11 +1,10 @@
 package handlers
 
 import (
-	"net/http"
-
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 
+	constants "backend-task/internal/constants"
 	"backend-task/internal/user/models"
 	services "backend-task/internal/user/services"
 	"backend-task/internal/utils"
@@ -21,15 +20,14 @@ func NewUserHandler(s services.UserService) *UserHandler {
 }
 
 // CreateUser godoc
-// @Summary Create one or more users
-// @Description Creates new users and assigns them to groups automatically (up to 3 per group).
+// @Summary Create one or more users.
+// @Description Creates new users and assigns them to groups automatically ( up to 3 per group ).
 // @Tags users
 // @Accept json
 // @Produce json
 // @Param users body []models.CreateUserReq true "User info array"
-// @Success 201 {array} models.User
-// @Failure 400 {object} utils.ErrorResponse "Invalid request body"
-// @Failure 409 {object} utils.ErrorResponse "Email already exists"
+// @Success 200 {array} models.User
+// @Failure 400 {object} utils.ErrorResponse "Invalid request or email already exists"
 // @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /users [post]
 func (userHandler *UserHandler) CreateUser(context *gin.Context) {
@@ -54,19 +52,19 @@ func (userHandler *UserHandler) CreateUser(context *gin.Context) {
 		created = append(created, *user)
 	}
 
-	context.JSON(http.StatusCreated, created)
+	context.JSON(constants.StatusOK, created)
 }
 
 // UpdateUser godoc
-// @Summary Update a user
-// @Description Update user name and/or email by ID (group cannot be updated manually).
+// @Summary Update a user.
+// @Description Update user name and/or email by ID ( group cannot be updated manually ).
 // @Tags users
 // @Accept json
 // @Produce json
 // @Param id path string true "User ID"
 // @Param user body models.UpdateUserReq true "User info"
 // @Success 200 {object} models.User
-// @Failure 400 {object} utils.ErrorResponse "Invalid request or ID"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request or invalid ID or email already exists"
 // @Failure 404 {object} utils.ErrorResponse "User not found"
 // @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /users/{id} [patch]
@@ -100,17 +98,17 @@ func (userHandler *UserHandler) UpdateUser(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, user)
+	context.JSON(constants.StatusOK, user)
 }
 
 // GetUserByID godoc
-// @Summary Get user by ID
+// @Summary Get user by ID.
 // @Description Retrieve a user by their unique UUID.
 // @Tags users
 // @Produce json
 // @Param id path string true "User ID"
 // @Success 200 {object} models.User
-// @Failure 400 {object} utils.ErrorResponse "Invalid ID"
+// @Failure 400 {object} utils.ErrorResponse "Invalid request or invalid ID"
 // @Failure 404 {object} utils.ErrorResponse "User not found"
 // @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /users/{id} [get]
@@ -130,17 +128,17 @@ func (userHandler *UserHandler) GetUserByID(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, user)
+	context.JSON(constants.StatusOK, user)
 }
 
 // QueryUsers godoc
-// @Summary List users
-// @Description Returns a list of users, optionally filtered by group using query parameter (e.g. adult-1, senior-2).
+// @Summary List of all users
+// @Description Returns a list of users, optionally filtered by group using query parameter (e.g., adult-1, senior-2)
 // @Tags users
 // @Accept json
 // @Produce json
 // @Param group query string false "Group name"
-// @Success 200 {array} models.User
+// @Success 200 {array} models.User "List of users"
 // @Failure 500 {object} utils.ErrorResponse "Internal server error"
 // @Router /users [get]
 func (userHandler *UserHandler) QueryUsers(context *gin.Context) {
@@ -154,5 +152,5 @@ func (userHandler *UserHandler) QueryUsers(context *gin.Context) {
 		return
 	}
 
-	context.JSON(http.StatusOK, users)
+	context.JSON(constants.StatusOK, users)
 }

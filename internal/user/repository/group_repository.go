@@ -3,6 +3,7 @@ package repository
 import (
 	"fmt"
 
+	"backend-task/internal/constants"
 	"backend-task/internal/user/models"
 	"backend-task/internal/utils"
 
@@ -33,7 +34,7 @@ func (groupRepositoryDB *GroupRepositoryDB) FindAllocatableGroupTx(gormDB *gorm.
 
 	// Try To find Existing Group With Available Capacity.
 	err := gormDB.Clauses(clause.Locking{Strength: "UPDATE"}).
-		Where("base = ? AND member_count < ?", base, utils.GroupCapacity).
+		Where("base = ? AND member_count < ?", base, constants.GroupCapacity).
 		Order("index ASC").
 		First(&group).Error
 
@@ -58,7 +59,7 @@ func (groupRepositoryDB *GroupRepositoryDB) FindAllocatableGroupTx(gormDB *gorm.
 
 		Base:     base,
 		Index:    maxIndex + 1,
-		Capacity: utils.GroupCapacity,
+		Capacity: constants.GroupCapacity,
 		Name:     fmt.Sprintf("%s-%d", base, maxIndex+1),
 	}
 
@@ -73,6 +74,6 @@ func (groupRepositoryDB *GroupRepositoryDB) FindAllocatableGroupTx(gormDB *gorm.
 func (groupRepositoryDB *GroupRepositoryDB) IncrementGroupCountTx(tx *gorm.DB, name string) error {
 
 	return tx.Model(&models.Group{}).
-		Where("name = ? AND member_count < ?", name, utils.GroupCapacity).
+		Where("name = ? AND member_count < ?", name, constants.GroupCapacity).
 		Update("member_count", gorm.Expr("member_count + 1")).Error
 }

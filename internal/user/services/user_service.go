@@ -6,6 +6,7 @@ import (
 	"strings"
 	"time"
 
+	"backend-task/internal/constants"
 	"backend-task/internal/user/models"
 	"backend-task/internal/user/repository"
 	"backend-task/internal/utils"
@@ -225,18 +226,18 @@ func ageToBaseGroup(birth time.Time) string {
 	age := utils.CalculateAge(birth)
 	switch {
 	case age >= 0 && age <= 12:
-		return utils.BaseGroupChild
+		return constants.BaseGroupChild
 
 	case age >= 13 && age <= 17:
-		return utils.BaseGroupTeen
+		return constants.BaseGroupTeen
 
 	case age >= 18 && age <= 64:
-		return utils.BaseGroupAdult
+		return constants.BaseGroupAdult
 
 	case age >= 65:
-		return utils.BaseGroupSenior
+		return constants.BaseGroupSenior
 
 	default:
-		return utils.BaseGroupUnset
+		return constants.BaseGroupUnset
 	}
 }

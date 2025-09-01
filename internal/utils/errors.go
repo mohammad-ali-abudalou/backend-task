@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"backend-task/internal/constants"
 	"errors"
 
 	"github.com/gin-gonic/gin"
@@ -30,30 +31,33 @@ var (
 	ErrFailedToCreateNewGroup             = errors.New("failed to create new group")
 )
 
-// ---------------- APIError Type ----------------
-type APIError struct {
+// ---------------- Error Response ----------------
+
+type ErrorResponse struct {
 	Code    int    `json:"code"`
-	Message string `json:"error"`
+	Message string `json:"message"`
 }
 
-func (e APIError) Error() string {
+func (e ErrorResponse) Error() string {
 	return e.Message
 }
 
 // ---------------- Predefined Constructors ----------------
+
 func NewBadRequest(msg string) error {
-	return APIError{Code: StatusBadRequest, Message: msg}
+	return ErrorResponse{Code: constants.StatusBadRequest, Message: msg}
 }
 
 func NewNotFound(msg string) error {
-	return APIError{Code: StatusNotFound, Message: msg}
+	return ErrorResponse{Code: constants.StatusNotFound, Message: msg}
 }
 
 func NewInternalError(msg string) error {
-	return APIError{Code: StatusInternalServerError, Message: msg}
+	return ErrorResponse{Code: constants.StatusInternalServerError, Message: msg}
 }
 
 // ---------------- Gin Error Responder ----------------
+
 func RespondError(context *gin.Context, err error) {
 
 	if err == nil {
@@ -61,7 +65,7 @@ func RespondError(context *gin.Context, err error) {
 		return
 	}
 
-	var apiErr APIError
+	var apiErr ErrorResponse
 
 	// Use APIError If Possible
 	if errors.As(err, &apiErr) {
@@ -73,30 +77,24 @@ func RespondError(context *gin.Context, err error) {
 	// Handle GORM Record Not Found
 	if errors.Is(err, ErrRecordNotFound) {
 
-		context.JSON(StatusNotFound, APIError{Code: StatusNotFound, Message: ErrRecordNotFound.Error()})
+		context.JSON(constants.StatusNotFound, ErrorResponse{Code: constants.StatusNotFound, Message: ErrRecordNotFound.Error()})
 		return
 	}
 
 	// Handle GORM User Not Found
 	if errors.Is(err, ErrUserNotFound) {
 
-		context.JSON(StatusNotFound, APIError{Code: StatusNotFound, Message: ErrUserNotFound.Error()})
+		context.JSON(constants.StatusNotFound, ErrorResponse{Code: constants.StatusNotFound, Message: ErrUserNotFound.Error()})
 		return
 	}
 
 	// Handle GORM Invalid ID
 	if errors.Is(err, ErrInvalidID) {
 
-		context.JSON(StatusBadRequest, APIError{Code: StatusNotFound, Message: ErrInvalidID.Error()})
+		context.JSON(constants.StatusBadRequest, ErrorResponse{Code: constants.StatusNotFound, Message: ErrInvalidID.Error()})
 		return
 	}
 
 	// Default Internal Server Error
-	context.JSON(StatusInternalServerError, APIError{Code: StatusInternalServerError, Message: ErrInternalError.Error()})
-}
-
-// ---------------- Swagger-Compatible Error Response ----------------
-type ErrorResponse struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
+	context.JSON(constants.StatusInternalServerError, ErrorResponse{Code: constants.StatusInternalServerError, Message: ErrInternalError.Error()})
 }

@@ -11,7 +11,7 @@ const docTemplate = `{
         "title": "{{.Title}}",
         "contact": {
             "name": "Mohammad Ali Abu-Dalou",
-            "email": "mohammadaliabudalou@example.com"
+            "email": "mohammad_abudalou@hotmail.com"
         },
         "version": "{{.Version}}"
     },
@@ -20,7 +20,7 @@ const docTemplate = `{
     "paths": {
         "/users": {
             "get": {
-                "description": "Returns a list of users, optionally filtered by group using query parameter (e.g. adult-1, senior-2).",
+                "description": "Returns a list of users, optionally filtered by group using query parameter (e.g., adult-1, senior-2)",
                 "consumes": [
                     "application/json"
                 ],
@@ -30,7 +30,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "List users",
+                "summary": "List of all users",
                 "parameters": [
                     {
                         "type": "string",
@@ -41,7 +41,7 @@ const docTemplate = `{
                 ],
                 "responses": {
                     "200": {
-                        "description": "OK",
+                        "description": "List of users",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -58,7 +58,7 @@ const docTemplate = `{
                 }
             },
             "post": {
-                "description": "Creates new users and assigns them to groups automatically (up to 3 per group).",
+                "description": "Creates new users and assigns them to groups automatically ( up to 3 per group ).",
                 "consumes": [
                     "application/json"
                 ],
@@ -68,7 +68,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Create one or more users",
+                "summary": "Create one or more users.",
                 "parameters": [
                     {
                         "description": "User info array",
@@ -84,8 +84,8 @@ const docTemplate = `{
                     }
                 ],
                 "responses": {
-                    "201": {
-                        "description": "Created",
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "type": "array",
                             "items": {
@@ -94,13 +94,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request body",
-                        "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
-                        }
-                    },
-                    "409": {
-                        "description": "Email already exists",
+                        "description": "Invalid request or email already exists",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
@@ -123,7 +117,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Get user by ID",
+                "summary": "Get user by ID.",
                 "parameters": [
                     {
                         "type": "string",
@@ -141,7 +135,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid ID",
+                        "description": "Invalid request or invalid ID",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }
@@ -161,7 +155,7 @@ const docTemplate = `{
                 }
             },
             "patch": {
-                "description": "Update user name and/or email by ID (group cannot be updated manually).",
+                "description": "Update user name and/or email by ID ( group cannot be updated manually ).",
                 "consumes": [
                     "application/json"
                 ],
@@ -171,7 +165,7 @@ const docTemplate = `{
                 "tags": [
                     "users"
                 ],
-                "summary": "Update a user",
+                "summary": "Update a user.",
                 "parameters": [
                     {
                         "type": "string",
@@ -198,7 +192,7 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request or ID",
+                        "description": "Invalid request or invalid ID or email already exists",
                         "schema": {
                             "$ref": "#/definitions/utils.ErrorResponse"
                         }

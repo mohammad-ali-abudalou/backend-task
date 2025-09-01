@@ -52,7 +52,7 @@ definitions:
 host: localhost:8080
 info:
   contact:
-    email: mohammadaliabudalou@example.com
+    email: mohammad_abudalou@hotmail.com
     name: Mohammad Ali Abu-Dalou
   description: REST API in Go (Gin + GORM) with automatic group assignment.
   title: Backend Task API
@@ -63,7 +63,7 @@ paths:
       consumes:
       - application/json
       description: Returns a list of users, optionally filtered by group using query
-        parameter (e.g. adult-1, senior-2).
+        parameter (e.g., adult-1, senior-2)
       parameters:
       - description: Group name
         in: query
@@ -73,7 +73,7 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
+          description: List of users
           schema:
             items:
               $ref: '#/definitions/models.User'
@@ -82,14 +82,14 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
-      summary: List users
+      summary: List of all users
       tags:
       - users
     post:
       consumes:
       - application/json
-      description: Creates new users and assigns them to groups automatically (up
-        to 3 per group).
+      description: Creates new users and assigns them to groups automatically ( up
+        to 3 per group ).
       parameters:
       - description: User info array
         in: body
@@ -102,25 +102,21 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
             items:
               $ref: '#/definitions/models.User'
             type: array
         "400":
-          description: Invalid request body
-          schema:
-            $ref: '#/definitions/utils.ErrorResponse'
-        "409":
-          description: Email already exists
+          description: Invalid request or email already exists
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
         "500":
           description: Internal server error
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
-      summary: Create one or more users
+      summary: Create one or more users.
       tags:
       - users
   /users/{id}:
@@ -140,7 +136,7 @@ paths:
           schema:
             $ref: '#/definitions/models.User'
         "400":
-          description: Invalid ID
+          description: Invalid request or invalid ID
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
         "404":
@@ -151,13 +147,14 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
-      summary: Get user by ID
+      summary: Get user by ID.
       tags:
       - users
     patch:
       consumes:
       - application/json
-      description: Update user name and/or email by ID (group cannot be updated manually).
+      description: Update user name and/or email by ID ( group cannot be updated manually
+        ).
       parameters:
       - description: User ID
         in: path
@@ -178,7 +175,7 @@ paths:
           schema:
             $ref: '#/definitions/models.User'
         "400":
-          description: Invalid request or ID
+          description: Invalid request or invalid ID or email already exists
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
         "404":
@@ -189,7 +186,7 @@ paths:
           description: Internal server error
           schema:
             $ref: '#/definitions/utils.ErrorResponse'
-      summary: Update a user
+      summary: Update a user.
       tags:
       - users
 swagger: "2.0"

@@ -21,7 +21,7 @@ import (
 // @version 1.0
 // @description REST API in Go (Gin + GORM) with automatic group assignment.
 // @contact.name Mohammad Ali Abu-Dalou
-// @contact.email mohammadaliabudalou@example.com
+// @contact.email mohammad_abudalou@hotmail.com
 // @host localhost:8080
 // @BasePath /api/v1
 func main() {
