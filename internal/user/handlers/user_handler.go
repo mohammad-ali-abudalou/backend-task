@@ -5,30 +5,30 @@ import (
 	"github.com/google/uuid"
 
 	constants "backend-task/internal/constants"
-	"backend-task/internal/user/models"
-	services "backend-task/internal/user/services"
+	models "backend-task/internal/user/models"
+	UserServiceInterface "backend-task/internal/user/services/interface"
 	"backend-task/internal/utils"
 )
 
 type UserHandler struct {
-	Service services.UserService
+	Service UserServiceInterface.UserService
 }
 
-func NewUserHandler(s services.UserService) *UserHandler {
+func NewUserHandler(s UserServiceInterface.UserService) *UserHandler {
 
 	return &UserHandler{Service: s}
 }
 
 // CreateUser godoc
 // @Summary Create one or more users.
-// @Description Creates new users and assigns them to groups automatically ( up to 3 per group ).
+// @Description Creates new users and assigns them to groups assigned automatically ( up to 3 per group ).
 // @Tags users
 // @Accept json
 // @Produce json
 // @Param users body []models.CreateUserReq true "User info array"
 // @Success 201 {array} models.User
-// @Failure 400 {object} utils.ErrorResponse "Invalid request or email already exists"
-// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Failure 400 {object} models.ErrorResponse "Invalid request. Possible reasons: email already exists, invalid email format, name is required, date_of_birth must be yyyy-mm-dd, or date_of_birth cannot be in the future."
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
 // @Router /users [post]
 func (userHandler *UserHandler) CreateUser(context *gin.Context) {
 
@@ -57,17 +57,17 @@ func (userHandler *UserHandler) CreateUser(context *gin.Context) {
 
 // UpdateUser godoc
 // @Summary Update a user.
-// @Description Update user name and/or email by ID ( group cannot be updated manually ).
+// @Description Update user information (email and name; group cannot be updated manually).
 // @Tags users
 // @Accept json
 // @Produce json
 // @Param id path string true "User ID"
 // @Param user body models.UpdateUserReq true "User info"
 // @Success 200 {object} models.User
-// @Failure 400 {object} utils.ErrorResponse "Invalid request or invalid ID or email already exists"
-// @Failure 404 {object} utils.ErrorResponse "User not found"
-// @Failure 500 {object} utils.ErrorResponse "Internal server error"
-// @Router /users/{id} [put]
+// @Failure 400 {object} models.ErrorResponse "Invalid request. Possible reasons: invalid ID, email already exists, name cannot be empty, or invalid email format."
+// @Failure 404 {object} models.ErrorResponse "User not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
+// @Router /users/{id} [patch]
 func (userHandler *UserHandler) UpdateUser(context *gin.Context) {
 
 	userId := context.Param("id")
@@ -108,9 +108,9 @@ func (userHandler *UserHandler) UpdateUser(context *gin.Context) {
 // @Produce json
 // @Param id path string true "User ID"
 // @Success 200 {object} models.User
-// @Failure 400 {object} utils.ErrorResponse "Invalid request or invalid ID"
-// @Failure 404 {object} utils.ErrorResponse "User not found"
-// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Failure 400 {object} models.ErrorResponse "Invalid request or invalid ID"
+// @Failure 404 {object} models.ErrorResponse "User not found"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
 // @Router /users/{id} [get]
 func (userHandler *UserHandler) GetUserByID(context *gin.Context) {
 
@@ -139,7 +139,7 @@ func (userHandler *UserHandler) GetUserByID(context *gin.Context) {
 // @Produce json
 // @Param group query string false "Group name"
 // @Success 200 {array} models.User "List of users"
-// @Failure 500 {object} utils.ErrorResponse "Internal server error"
+// @Failure 500 {object} models.ErrorResponse "Internal server error"
 // @Router /users [get]
 func (userHandler *UserHandler) QueryUsers(context *gin.Context) {
 

@@ -93,23 +93,23 @@ func (_m *UserRepository) IsEmailExists(_a0 context.Context, email string) (bool
 }
 
 // ListUsers provides a mock function with given fields: _a0, group
-func (_m *UserRepository) ListUsers(_a0 context.Context, group string) ([]models.User, error) {
+func (_m *UserRepository) ListUsers(_a0 context.Context, group string) ([]*models.User, error) {
 	ret := _m.Called(_a0, group)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListUsers")
 	}
 
-	var r0 []models.User
+	var r0 []*models.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) ([]models.User, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) ([]*models.User, error)); ok {
 		return rf(_a0, group)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) []models.User); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string) []*models.User); ok {
 		r0 = rf(_a0, group)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.User)
+			r0 = ret.Get(0).([]*models.User)
 		}
 	}
 

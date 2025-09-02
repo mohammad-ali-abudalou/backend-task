@@ -74,23 +74,23 @@ func (_m *UserService) GetUserByID(id string) (*models.User, error) {
 }
 
 // ListUsersByFilter provides a mock function with given fields: group
-func (_m *UserService) ListUsersByFilter(group string) ([]models.User, error) {
+func (_m *UserService) ListUsersByFilter(group string) ([]*models.User, error) {
 	ret := _m.Called(group)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListUsersByFilter")
 	}
 
-	var r0 []models.User
+	var r0 []*models.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]models.User, error)); ok {
+	if rf, ok := ret.Get(0).(func(string) ([]*models.User, error)); ok {
 		return rf(group)
 	}
-	if rf, ok := ret.Get(0).(func(string) []models.User); ok {
+	if rf, ok := ret.Get(0).(func(string) []*models.User); ok {
 		r0 = rf(group)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]models.User)
+			r0 = ret.Get(0).([]*models.User)
 		}
 	}
 

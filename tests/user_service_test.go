@@ -7,48 +7,64 @@ import (
 	"backend-task/internal/user/models"
 	mocks "backend-task/tests/mocks"
 
+	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestCreateUserService(t *testing.T) {
-
+func TestService(testingT *testing.T) {
 	mockService := new(mocks.UserService)
 
-	// Use A Realistic DOB.
 	user := &models.User{
+		ID:          uuid.New(),
 		Name:        "Abudalou",
 		Email:       "abudalou@test.com",
 		DateOfBirth: time.Date(2000, 1, 4, 0, 0, 0, 0, time.UTC),
 	}
 
-	dateString := user.DateOfBirth.Format("2006-01-02")
+	// Create User :
+	mockService.On("CreateUser", user.Name, user.Email, user.DateOfBirth.String()).Return(user, nil)
+	createdUser, err := mockService.CreateUser(user.Name, user.Email, user.DateOfBirth.String())
+	assert.NoError(testingT, err)
 
-	// Setup Mock Correctly With 3 Arguments.
-	mockService.On("CreateUser", user.Name, user.Email, dateString).
-		Return(user, nil)
+	// Update User :
+	name := "Updated Name"
+	email := "updated@test.com"
+	mockService.On("UpdateUser", createdUser.ID.String(), &name, &email).Return(user, nil)
+	_, err = mockService.UpdateUser(createdUser.ID.String(), &name, &email)
+	assert.NoError(testingT, err)
 
-	// Call The Mocked Method.
-	result, err := mockService.CreateUser(user.Name, user.Email, dateString)
+	// Get User By ID :
+	mockService.On("GetUserByID", createdUser.ID.String()).Return(user, nil)
+	result, err := mockService.GetUserByID(createdUser.ID.String())
+	assert.NoError(testingT, err)
+	assert.Equal(testingT, user, result)
 
-	assert.NoError(t, err)
-	assert.Equal(t, user, result)
+	// List Users By Filter :
+	mockService.On("ListUsersByFilter", "adult-1").Return([]*models.User{user}, nil)
+	users, err := mockService.ListUsersByFilter("adult-1")
+	assert.NoError(testingT, err)
+	assert.Len(testingT, users, 1)
+	assert.Equal(testingT, user, users[0])
 
-	// Verify That Expectations Were Met.
-	mockService.AssertExpectations(t)
+	// Verify All Expectations :
+	mockService.AssertExpectations(testingT)
 }
 
 func TestListUsersByFilterService(t *testing.T) {
 
 	mockService := new(mocks.UserService)
 
-	users := []models.User{
-		{Name: "Abudalou", Email: "abudalou@test.com"},
+	users := []*models.User{
+		{ID: uuid.New(), Name: "Abudalou", Email: "abudalou@test.com", DateOfBirth: time.Date(2000, 1, 4, 0, 0, 0, 0, time.UTC)},
+		{ID: uuid.New(), Name: "Abudalou1", Email: "abudalou1@test.com", DateOfBirth: time.Date(2000, 1, 4, 0, 0, 0, 0, time.UTC)},
 	}
 
-	mockService.On("ListUsersByFilter", "").Return(users, nil)
+	mockService.On("ListUsersByFilter", "adult-1").Return(users, nil)
 
-	result, err := mockService.ListUsersByFilter("")
+	result, err := mockService.ListUsersByFilter("adult-1")
 	assert.NoError(t, err)
+
+	assert.Len(t, result, len(users))
 	assert.Equal(t, users, result)
 
 	mockService.AssertExpectations(t)

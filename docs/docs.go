@@ -52,13 +52,13 @@ const docTemplate = `{
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
             },
             "post": {
-                "description": "Creates new users and assigns them to groups automatically ( up to 3 per group ).",
+                "description": "Creates new users and assigns them to groups assigned automatically ( up to 3 per group ).",
                 "consumes": [
                     "application/json"
                 ],
@@ -94,15 +94,15 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request or email already exists",
+                        "description": "Invalid request. Possible reasons: email already exists, invalid email format, name is required, date_of_birth must be yyyy-mm-dd, or date_of_birth cannot be in the future.",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
@@ -137,25 +137,25 @@ const docTemplate = `{
                     "400": {
                         "description": "Invalid request or invalid ID",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
             },
-            "put": {
-                "description": "Update user name and/or email by ID ( group cannot be updated manually ).",
+            "patch": {
+                "description": "Update user information (email and name; group cannot be updated manually).",
                 "consumes": [
                     "application/json"
                 ],
@@ -192,21 +192,21 @@ const docTemplate = `{
                         }
                     },
                     "400": {
-                        "description": "Invalid request or invalid ID or email already exists",
+                        "description": "Invalid request. Possible reasons: invalid ID, email already exists, name cannot be empty, or invalid email format.",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "404": {
                         "description": "User not found",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     },
                     "500": {
                         "description": "Internal server error",
                         "schema": {
-                            "$ref": "#/definitions/utils.ErrorResponse"
+                            "$ref": "#/definitions/models.ErrorResponse"
                         }
                     }
                 }
@@ -233,6 +233,17 @@ const docTemplate = `{
                 "name": {
                     "type": "string",
                     "example": "John Doe"
+                }
+            }
+        },
+        "models.ErrorResponse": {
+            "type": "object",
+            "properties": {
+                "code": {
+                    "type": "integer"
+                },
+                "message": {
+                    "type": "string"
                 }
             }
         },
@@ -293,17 +304,6 @@ const docTemplate = `{
                     "description": "Timestamp When The Record Was Last Updated.",
                     "type": "string",
                     "example": "2025-09-01T12:30:00Z"
-                }
-            }
-        },
-        "utils.ErrorResponse": {
-            "type": "object",
-            "properties": {
-                "code": {
-                    "type": "integer"
-                },
-                "message": {
-                    "type": "string"
                 }
             }
         }

@@ -16,6 +16,13 @@ definitions:
     - email
     - name
     type: object
+  models.ErrorResponse:
+    properties:
+      code:
+        type: integer
+      message:
+        type: string
+    type: object
   models.UpdateUserReq:
     properties:
       email:
@@ -70,13 +77,6 @@ definitions:
     - email
     - name
     type: object
-  utils.ErrorResponse:
-    properties:
-      code:
-        type: integer
-      message:
-        type: string
-    type: object
 host: 51.21.3.224:8080
 info:
   contact:
@@ -109,15 +109,15 @@ paths:
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
       summary: Search users by group / List all users
       tags:
       - users
     post:
       consumes:
       - application/json
-      description: Creates new users and assigns them to groups automatically ( up
-        to 3 per group ).
+      description: Creates new users and assigns them to groups assigned automatically
+        ( up to 3 per group ).
       parameters:
       - description: User info array
         in: body
@@ -137,13 +137,15 @@ paths:
               $ref: '#/definitions/models.User'
             type: array
         "400":
-          description: Invalid request or email already exists
+          description: 'Invalid request. Possible reasons: email already exists, invalid
+            email format, name is required, date_of_birth must be yyyy-mm-dd, or date_of_birth
+            cannot be in the future.'
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
       summary: Create one or more users.
       tags:
       - users
@@ -166,23 +168,23 @@ paths:
         "400":
           description: Invalid request or invalid ID
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
       summary: Get user by ID.
       tags:
       - users
-    put:
+    patch:
       consumes:
       - application/json
-      description: Update user name and/or email by ID ( group cannot be updated manually
-        ).
+      description: Update user information (email and name; group cannot be updated
+        manually).
       parameters:
       - description: User ID
         in: path
@@ -203,17 +205,18 @@ paths:
           schema:
             $ref: '#/definitions/models.User'
         "400":
-          description: Invalid request or invalid ID or email already exists
+          description: 'Invalid request. Possible reasons: invalid ID, email already
+            exists, name cannot be empty, or invalid email format.'
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "404":
           description: User not found
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
         "500":
           description: Internal server error
           schema:
-            $ref: '#/definitions/utils.ErrorResponse'
+            $ref: '#/definitions/models.ErrorResponse'
       summary: Update a user.
       tags:
       - users

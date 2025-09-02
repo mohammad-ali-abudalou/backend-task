@@ -4,6 +4,7 @@ import (
 	"backend-task/internal/user/handlers"
 	"backend-task/internal/user/repository"
 	services "backend-task/internal/user/services"
+	UserServiceInterface "backend-task/internal/user/services/interface"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -35,11 +36,11 @@ func SetupRouters(db *gorm.DB) *Server {
 	{
 		api.POST("/users", userHandler.CreateUser)
 		api.GET("/users/:id", userHandler.GetUserByID)
-		api.PUT("/users/:id", userHandler.UpdateUser)
+		api.PATCH("/users/:id", userHandler.UpdateUser)
 		api.GET("/users", userHandler.QueryUsers) // Supports Group Filter.
 	}
 
-	// Health Check ( Useful For Kubernetes, Docker, etc. )
+	// Health Check ( Useful For Kubernetes, etc. )
 	router.GET("/health", func(context *gin.Context) {
 
 		context.JSON(200, gin.H{"status": "ok"})
@@ -49,14 +50,14 @@ func SetupRouters(db *gorm.DB) *Server {
 }
 
 // For Testing With Mocks :
-func SetupRoutersWithService(userService services.UserService) *gin.Engine {
+func SetupRoutersWithService(userService UserServiceInterface.UserService) *gin.Engine {
 
 	router := gin.Default()
 	handler := handlers.NewUserHandler(userService)
 
 	router.POST("/users", handler.CreateUser)
 	router.GET("/users/:id", handler.GetUserByID)
-	router.PUT("/users/:id", handler.UpdateUser)
+	router.PATCH("/users/:id", handler.UpdateUser)
 	router.GET("/users", handler.QueryUsers)
 
 	return router

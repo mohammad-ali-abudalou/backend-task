@@ -15,7 +15,7 @@ type UserRepository interface {
 	CreateNewUser(context context.Context, user *models.User) error
 	GetUserByID(context context.Context, userID uuid.UUID) (*models.User, error)
 	UpdateUser(context context.Context, user *models.User, fields ...string) error
-	ListUsers(context context.Context, group string) ([]models.User, error)
+	ListUsers(context context.Context, group string) ([]*models.User, error)
 	IsEmailExists(context context.Context, email string) (bool, error)
 }
 
@@ -50,9 +50,9 @@ func (userRepositoryDB *UserRepositoryDB) UpdateUser(context context.Context, us
 	return userRepositoryDB.gormDB.WithContext(context).Model(user).Select(fields).Updates(user).Error
 }
 
-func (userRepositoryDB *UserRepositoryDB) ListUsers(context context.Context, group string) ([]models.User, error) {
+func (userRepositoryDB *UserRepositoryDB) ListUsers(context context.Context, group string) ([]*models.User, error) {
 
-	var users []models.User
+	var users []*models.User
 	gormDB := userRepositoryDB.gormDB.WithContext(context).Order("created_at asc")
 	if group != "" {
 

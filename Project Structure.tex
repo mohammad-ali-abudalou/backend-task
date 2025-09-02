@@ -16,15 +16,15 @@ backend-task/
 │   └── app/
 │   │   └── container.go 
 │   │ 
+│   └── config/
+│   │   └── env.go 
+│   │ 
 │   └── constants/
 │   │   └── app.go 
 │   │   └── db.go 
 │   │   └── dns.go 
 │   │   └── group.go 
 │   │   └── http_status.go 
-│   │ 
-│   └── db/
-│   │   └── db.go 
 │   │ 
 │   └── db/
 │   │   └── db.go 
@@ -42,6 +42,7 @@ backend-task/
 │   │   │   ├── group.go
 │   │   │   ├── create_user_req.go
 │   │   │   └── update_user_req.go
+│   │   │   └── error_responsde.go
 │   │   │   
 │   │   ├── repository/
 │   │   │   └── user_repository.go
@@ -67,15 +68,12 @@ backend-task/
 │   │    └── UserService.go
 |   |
 │   ├── .env.test
-│   ├── main_test.go
 │   ├── user_service_test.go
 │   ├── user_repository_test.go
 │   └── user_handler_test.go
 │
 ├── .env
 ├── .gitignore
-├── Dockerfile
-├── docker-compose.yml
 ├── go.mod
 └── go.sum
 └── README.md

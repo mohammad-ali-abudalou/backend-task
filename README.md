@@ -128,7 +128,7 @@ Then open: `http://localhost:8080/swagger/index.html`
 
 
 ### Update User ( Name / Email Only )
-**PUT /users/{id}**
+**PATCH /users/{id}**
 
 **Request:**
 ```json

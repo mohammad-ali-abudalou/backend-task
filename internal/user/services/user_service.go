@@ -9,33 +9,27 @@ import (
 	"backend-task/internal/constants"
 	"backend-task/internal/user/models"
 	"backend-task/internal/user/repository"
+	userServiceInterface "backend-task/internal/user/services/interface"
 	"backend-task/internal/utils"
 
 	"github.com/google/uuid"
 	"gorm.io/gorm"
 )
 
-type UserService interface {
-	CreateUser(name, email, dob string) (*models.User, error)
-	GetUserByID(id string) (*models.User, error)
-	UpdateUser(id string, name, email *string) (*models.User, error)
-	ListUsersByFilter(group string) ([]models.User, error)
-}
-
-type userService struct {
+type UserService struct {
 	db     *gorm.DB
 	users  repository.UserRepository
 	groups repository.GroupRepository
 }
 
-func NewUserService(db *gorm.DB, users repository.UserRepository, groups repository.GroupRepository) UserService {
+func NewUserService(db *gorm.DB, users repository.UserRepository, groups repository.GroupRepository) userServiceInterface.UserService {
 
-	return &userService{db: db, users: users, groups: groups}
+	return &UserService{db: db, users: users, groups: groups}
 }
 
 // ---------------- Create User ----------------
 
-func (userService *userService) CreateUser(name, email, dob string) (*models.User, error) {
+func (userService *UserService) CreateUser(name, email, dob string) (*models.User, error) {
 
 	name = strings.TrimSpace(name)
 	email = strings.ToLower(strings.TrimSpace(email))
@@ -118,7 +112,7 @@ func (userService *userService) CreateUser(name, email, dob string) (*models.Use
 
 // ---------------- Get User ----------------
 
-func (userService *userService) GetUserByID(id string) (*models.User, error) {
+func (userService *UserService) GetUserByID(id string) (*models.User, error) {
 
 	uid, err := uuid.Parse(id)
 	if err != nil {
@@ -142,7 +136,7 @@ func (userService *userService) GetUserByID(id string) (*models.User, error) {
 
 // ---------------- Update User ----------------
 
-func (userService *userService) UpdateUser(id string, name, email *string) (*models.User, error) {
+func (userService *UserService) UpdateUser(id string, name, email *string) (*models.User, error) {
 
 	uid, err := uuid.Parse(id)
 	if err != nil {
@@ -215,7 +209,7 @@ func (userService *userService) UpdateUser(id string, name, email *string) (*mod
 
 // ---------------- List Users ----------------
 
-func (userService *userService) ListUsersByFilter(group string) ([]models.User, error) {
+func (userService *UserService) ListUsersByFilter(group string) ([]*models.User, error) {
 
 	return userService.users.ListUsers(context.Background(), group)
 }

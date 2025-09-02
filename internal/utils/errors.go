@@ -2,8 +2,8 @@ package utils
 
 import (
 	"backend-task/internal/constants"
+	models "backend-task/internal/user/models"
 	"errors"
-	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -32,44 +32,30 @@ var (
 	ErrFailedToCreateNewGroup             = errors.New("failed to create new group")
 )
 
-// ---------------- Error Response ----------------
-
-type ErrorResponse struct {
-	Code    int    `json:"code"`
-	Message string `json:"message"`
-}
-
-func (e ErrorResponse) Error() string {
-	return e.Message
-}
-
 // ---------------- Predefined Constructors ----------------
 
 func NewBadRequest(err error) error {
-	return ErrorResponse{Code: constants.StatusBadRequest, Message: err.Error()}
+	return models.ErrorResponse{Code: constants.StatusBadRequest, Message: err.Error()}
 }
 
 func NewNotFound(err error) error {
-	return ErrorResponse{Code: constants.StatusNotFound, Message: err.Error()}
+	return models.ErrorResponse{Code: constants.StatusNotFound, Message: err.Error()}
 }
 
 func NewInternalError(err error) error {
-	return ErrorResponse{Code: constants.StatusInternalServerError, Message: err.Error()}
+	return models.ErrorResponse{Code: constants.StatusInternalServerError, Message: err.Error()}
 }
 
 // ---------------- Gin Error Responder ----------------
 
 func RespondError(context *gin.Context, err error) {
 
-	fmt.Println("RespondError")
-	fmt.Println(err)
-
 	if err == nil {
 
 		return
 	}
 
-	var apiErr ErrorResponse
+	var apiErr models.ErrorResponse
 
 	// Use APIError If Possible
 	if errors.As(err, &apiErr) {
@@ -78,75 +64,37 @@ func RespondError(context *gin.Context, err error) {
 		return
 	}
 
-	// Handle GORM Record Not Found
-	if errors.Is(err, ErrRecordNotFound) {
+	switch {
 
-		context.JSON(constants.StatusNotFound, ErrorResponse{Code: constants.StatusNotFound, Message: ErrRecordNotFound.Error()})
-		return
+	case errors.Is(err, ErrRecordNotFound):
+		context.JSON(constants.StatusNotFound, models.ErrorResponse{Code: constants.StatusNotFound, Message: ErrRecordNotFound.Error()})
+
+	case errors.Is(err, ErrUserNotFound):
+		context.JSON(constants.StatusNotFound, models.ErrorResponse{Code: constants.StatusNotFound, Message: ErrUserNotFound.Error()})
+
+	case errors.Is(err, ErrInvalidID):
+		context.JSON(constants.StatusBadRequest, models.ErrorResponse{Code: constants.StatusBadRequest, Message: ErrInvalidID.Error()})
+
+	case errors.Is(err, ErrNameCannotBeEmpty):
+		context.JSON(constants.StatusBadRequest, models.ErrorResponse{Code: constants.StatusBadRequest, Message: ErrNameCannotBeEmpty.Error()})
+
+	case errors.Is(err, ErrInvalidEmailFormat):
+		context.JSON(constants.StatusBadRequest, models.ErrorResponse{Code: constants.StatusBadRequest, Message: ErrInvalidEmailFormat.Error()})
+
+	case errors.Is(err, ErrEmailAlreadyExists):
+		context.JSON(constants.StatusBadRequest, models.ErrorResponse{Code: constants.StatusBadRequest, Message: ErrEmailAlreadyExists.Error()})
+
+	case errors.Is(err, ErrNameIsRequired):
+		context.JSON(constants.StatusBadRequest, models.ErrorResponse{Code: constants.StatusBadRequest, Message: ErrNameIsRequired.Error()})
+
+	case errors.Is(err, ErrDateOfBirthFormat):
+		context.JSON(constants.StatusBadRequest, models.ErrorResponse{Code: constants.StatusBadRequest, Message: ErrDateOfBirthFormat.Error()})
+
+	case errors.Is(err, ErrDateOfBirthCannotBeFuture):
+		context.JSON(constants.StatusBadRequest,
+			models.ErrorResponse{Code: constants.StatusBadRequest, Message: ErrDateOfBirthCannotBeFuture.Error()})
+
+	default:
+		context.JSON(constants.StatusInternalServerError, models.ErrorResponse{Code: constants.StatusInternalServerError, Message: ErrInternalError.Error()})
 	}
-
-	// Handle GORM User Not Found
-	if errors.Is(err, ErrUserNotFound) {
-
-		context.JSON(constants.StatusNotFound, ErrorResponse{Code: constants.StatusNotFound, Message: ErrUserNotFound.Error()})
-		return
-	}
-
-	// Handle GORM Invalid ID
-	if errors.Is(err, ErrInvalidID) {
-
-		context.JSON(constants.StatusBadRequest, ErrorResponse{Code: constants.StatusBadRequest, Message: ErrInvalidID.Error()})
-		return
-	}
-
-	// Handle GORM Name Can not Be Empty
-	if errors.Is(err, ErrNameCannotBeEmpty) {
-
-		context.JSON(constants.StatusBadRequest, ErrorResponse{Code: constants.StatusBadRequest, Message: ErrNameCannotBeEmpty.Error()})
-		return
-	}
-
-	// Handle GORM Invalid Email Format
-	if errors.Is(err, ErrInvalidEmailFormat) {
-
-		context.JSON(constants.StatusBadRequest, ErrorResponse{Code: constants.StatusBadRequest, Message: ErrInvalidEmailFormat.Error()})
-		return
-	}
-
-	// Handle GORM Email Already Exists
-	if errors.Is(err, ErrEmailAlreadyExists) {
-
-		context.JSON(constants.StatusBadRequest, ErrorResponse{Code: constants.StatusBadRequest, Message: ErrEmailAlreadyExists.Error()})
-		return
-	}
-
-	// Handle GORM Name Is Required
-	if errors.Is(err, ErrNameIsRequired) {
-
-		context.JSON(constants.StatusBadRequest, ErrorResponse{Code: constants.StatusBadRequest, Message: ErrNameIsRequired.Error()})
-		return
-	}
-
-	// Handle GORM Date Of Birth Format
-	if errors.Is(err, ErrDateOfBirthFormat) {
-
-		context.JSON(constants.StatusBadRequest, ErrorResponse{Code: constants.StatusBadRequest, Message: ErrDateOfBirthFormat.Error()})
-		return
-	}
-
-	fmt.Println(err)
-	fmt.Println(ErrDateOfBirthCannotBeFuture)
-
-	// Handle GORM Date Of Birth Can Not Be Future
-	if errors.Is(err, ErrDateOfBirthCannotBeFuture) {
-
-		context.JSON(constants.StatusBadRequest, ErrorResponse{Code: constants.StatusBadRequest, Message: ErrDateOfBirthCannotBeFuture.Error()})
-		return
-	}
-
-	fmt.Println("Default Internal Server ErrorError")
-	fmt.Println(err)
-
-	// Default Internal Server Error
-	context.JSON(constants.StatusInternalServerError, ErrorResponse{Code: constants.StatusInternalServerError, Message: ErrInternalError.Error()})
 }
